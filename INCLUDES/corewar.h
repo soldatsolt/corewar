@@ -23,4 +23,10 @@
 # include <grp.h>
 # include <uuid/uuid.h>
 
+typedef struct          s_asm
+{
+	char				*name;
+	char				*comment;
+}						t_asm;
+
 #endif

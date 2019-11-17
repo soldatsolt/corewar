@@ -102,7 +102,7 @@ $(NAME): $(OBJS) $(INCLUDES)
 	@ar rc $(NAME) $(OBJS)
 
 %.o: %.c $(INCLUDES)
-	@gcc -c $< -I$(INCLUDES) -o $@
+	@gcc -c -g $< -I$(INCLUDES) -o $@
 
 clean:
 	@$(ECHO) "$(REMOVE_O_STRING)"
