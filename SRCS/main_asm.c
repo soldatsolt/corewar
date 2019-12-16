@@ -1,5 +1,4 @@
 #include "corewar.h"
-#include "op.h"
 
 /*
 ** Начинаю делать проект корвар с асм
@@ -30,28 +29,68 @@
 **
 */
 
-void		insert_comment_to_asm(char *str, t_asm *a)
+void		insert_all_between_quotes_to_str(int fd, char *str, int limit, t_asm *a)
 {
+	char	*to;
 	char	*tmp_str;
 	int		i;
+	int		gnl;
 
 	i = 0;
+	gnl = 2;
+	to = (limit == COMMENT_LENGTH) ? a->comment : a->name;
 	tmp_str = ft_strchr(str, '"');
 	tmp_str++;
 	i = ft_strchr_n(tmp_str, '"');
-	a->comment = ft_strsub(tmp_str, 0, i);
+	while (i < 0 && gnl > 0)
+	{
+		(gnl == 2) ? ft_strcpy(to, tmp_str) : ft_strcpy(to, str);
+		to += (gnl == 2) ? (int)ft_strlen(to) : (int)ft_strlen(str);
+		ft_strcpy(to, "\n");
+		to++;
+		gnl = get_next_line(fd, &str);
+		a->current_line_number++;
+		i = ft_strchr_n(str, '"');
+		if (i < 0)
+			free(str); // TODO: ОЧЕНЬ СПОРНЫЙ ФРИИ. Подумать, как можно сделать нормально))
+	}
+	(gnl == 2) ? ft_strncpy(to, tmp_str, ft_strchr_n(tmp_str, '"')) : ft_strncpy(to, str, ft_strchr_n(str, '"'));
 }
 
-void		insert_name_to_asm(char *str, t_asm *a)
+void		insert_comment_to_asm(int fd, char *str, t_asm *a)
+{
+	char	*tmp_str;
+	int		i;
+	int 	gnl;
+
+	gnl = 1;
+	i = 0;
+	if (a->f & F_COMMENT)
+	{
+		ft_putendl_fd("Comment was declared before", 2);
+		exit(1);
+	}
+	a->f |= F_COMMENT;
+	// ft_printf("FLAG = %d\n", a->f);
+	ft_bzero(a->comment, COMMENT_LENGTH);
+	insert_all_between_quotes_to_str(fd, str, COMMENT_LENGTH, a);
+}
+
+void		insert_name_to_asm(int fd, char *str, t_asm *a)
 {
 	char	*tmp_str;
 	int		i;
 
 	i = 0;
-	tmp_str = ft_strchr(str, '"');
-	tmp_str++;
-	i = ft_strchr_n(tmp_str, '"');
-	a->name = ft_strsub(tmp_str, 0, i);
+	if (a->f & F_NAME)
+	{
+		ft_putendl_fd("Name was declared before", 2);
+		exit(1);
+	}
+	a->f |= F_NAME;
+	// ft_printf("FLAG = %d\n", a->f);
+	ft_bzero(a->name, PROG_NAME_LENGTH);
+	insert_all_between_quotes_to_str(fd, str, PROG_NAME_LENGTH, a);
 }
 
 int			first_non_space_char(char *str)
@@ -66,7 +105,7 @@ int			first_non_space_char(char *str)
 	return (i);
 }
 
-void		parse_this_line(char *str, int i, t_asm *a)
+void		parse_this_line(int fd, char *str, t_asm *a)
 {
 	str = ft_strtrim(str);
 	if (!str[0])
@@ -76,32 +115,33 @@ void		parse_this_line(char *str, int i, t_asm *a)
 	}
 	if (!ft_strncmp(str, NAME_CMD_STRING, 5))
 	{
-		ft_printf("NAME IS ON  %d\n", i);
-		insert_name_to_asm(str, a);
+		// ft_printf("NAME IS ON  %d\n", a->current_line_number);
+		insert_name_to_asm(fd, str, a);
 	}
-	if (!ft_strncmp(str, COMMENT_CMD_STRING, 8))
+	else if (!ft_strncmp(str, COMMENT_CMD_STRING, 8))
 	{
-		ft_printf("COMMENT ON %d\n", i);
-		insert_comment_to_asm(str, a);
-		// exit(1);
+		// ft_printf("COMMENT ON %d\n", a->current_line_number);
+		insert_comment_to_asm(fd, str, a);
 	}
-
+	// else if (!ft_strncmp(str, "1111", 4))
+	// {
+	// 	ft_printf("ERROR ON LINE: %d\n", a->current_line_number);
+	// }
 	free(str);
 }
 
 int			read_from_file(int fd, t_asm *a)
 {
-	int		i;
 	char	*str;
 
-	i = 1;
+	a->current_line_number = 1;
 	while (get_next_line(fd, &str))
 	{
-		ft_printf("%s\n", str);
-		parse_this_line(str, i, a);
+		// ft_printf("%s\n", str);
+		parse_this_line(fd, str, a);
 		free(str);
 		str = NULL;
-		i++;
+		a->current_line_number++;
 	}
 	if (str)
 		free(str);
@@ -114,6 +154,7 @@ int			main(int argc, char **argv)
 	char	str[BUFF_SIZE + 1];
 	t_asm	a;
 
+	a.f = 0;
 	if (argc < 2)
 		ft_putendl("Usage: ./vm_champs/asm <sourcefile.s>");
 	else

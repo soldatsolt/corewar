@@ -1,7 +1,11 @@
-.name           "42"
-.comment        "Just a basic Winner Program"
+.comment    "This city needs me"
+.name       "BATMAN"
 
-entree:	live	%42		# entree
-	ld	%0,r5
-	ld	%0,r5
-	zjmp	%:bite
+loop:
+        sti r1, %:live, %1
+live:
+        live %0
+        ld %0, r2
+        zjmp %:loop
+1111
+

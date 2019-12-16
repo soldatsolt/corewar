@@ -29,5 +29,5 @@ int		ft_strchr_n(const char *s, int c)
 	}
 	if (*str == cc)
 		return (i);
-	return (0);
+	return (-1);
 }

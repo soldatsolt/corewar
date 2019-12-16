@@ -15,6 +15,7 @@
 # include "../libft/libft.h"
 # include <sys/stat.h>
 # include <sys/xattr.h>
+# include "op.h"
 # include <time.h>
 # include <dirent.h>
 # include <sys/types.h>
@@ -22,11 +23,15 @@
 # include <uuid/uuid.h>
 # include <grp.h>
 # include <uuid/uuid.h>
+# define F_NAME 0x1
+# define F_COMMENT 0x2
 
 typedef struct          s_asm
 {
-	char				*name;
-	char				*comment;
+	char				name[PROG_NAME_LENGTH];
+	char				comment[COMMENT_LENGTH];
+	int					f;
+	int					current_line_number;
 }						t_asm;
 
 #endif

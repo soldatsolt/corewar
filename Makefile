@@ -3,9 +3,7 @@ NAME=asm
 SRCS=SRCS/main_asm.c
 OBJS=$(SRCS:SRCS%.c=OBJS%.o)
 HEADER=INCLUDES/corewar.h
-HEADER2=op.h
 INCLUDES=INCLUDES
-INCLUDES2=.
 LIBFT=libft/libft.a
 FLAGS =# -Wall -Wextra -Werror
 LIBFTCFILES = libft/*.c
@@ -29,8 +27,8 @@ $(NAME): $(OBJS) $(INCLUDES) $(LIBFT)
 $(LIBFT): $(LIBFTCILES)
 	@$(MAKE) -C libft
 
-OBJS/%.o: SRCS/%.c $(HEADER) $(HEADER2)
-	@gcc -c -g $(FLAGS) $< -I$(INCLUDES) -I$(INCLUDES2) -I$(LIBFT) -o $@
+OBJS/%.o: SRCS/%.c $(HEADER)
+	@gcc -c -g $(FLAGS) $< -I$(INCLUDES) -I$(LIBFT) -o $@
 
 clean:
 	@rm -f $(OBJS)
