@@ -48,13 +48,14 @@ void		insert_all_between_quotes_to_str(int fd, char *str, int limit, t_asm *a)
 		to += (gnl == 2) ? (int)ft_strlen(to) : (int)ft_strlen(str);
 		ft_strcpy(to, "\n");
 		to++;
+		if (gnl != 2)
+			free(str);
 		gnl = get_next_line(fd, &str);
 		a->current_line_number++;
 		i = ft_strchr_n(str, '"');
-		if (i < 0)
-			free(str); // TODO: ОЧЕНЬ СПОРНЫЙ ФРИИ. Подумать, как можно сделать нормально))
 	}
 	(gnl == 2) ? ft_strncpy(to, tmp_str, ft_strchr_n(tmp_str, '"')) : ft_strncpy(to, str, ft_strchr_n(str, '"'));
+	(gnl == 2) ? i = 1 : free(str);
 }
 
 void		insert_comment_to_asm(int fd, char *str, t_asm *a)
@@ -116,7 +117,9 @@ void		parse_this_line(int fd, char *str, t_asm *a)
 	if (!ft_strncmp(str, NAME_CMD_STRING, 5))
 	{
 		// ft_printf("NAME IS ON  %d\n", a->current_line_number);
+		// ft_printf("STR IS  %p\n", &str);
 		insert_name_to_asm(fd, str, a);
+		// ft_printf("STR IS  %p\n", &str);
 	}
 	else if (!ft_strncmp(str, COMMENT_CMD_STRING, 8))
 	{
