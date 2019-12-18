@@ -25,12 +25,14 @@
 # include <uuid/uuid.h>
 # define F_NAME 0x1
 # define F_COMMENT 0x2
+# define CNTL "Champion name too long (Max length 2048)"
+# define CCTL "Champion comment too long (Max length 2048)"
 
 typedef struct          s_asm
 {
-	char				name[PROG_NAME_LENGTH];
-	char				comment[COMMENT_LENGTH];
-	int					f;
+	char				name[PROG_NAME_LENGTH + 1];
+	char				comment[COMMENT_LENGTH + 1];
+	int					f; // - Флаги. K примеру, было ли имя объявлено ранее или нет и тд.
 	int					current_line_number;
 }						t_asm;
 
