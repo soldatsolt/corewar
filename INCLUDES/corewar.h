@@ -28,6 +28,17 @@
 # define CNTL "Champion name too long (Max length 2048)"
 # define CCTL "Champion comment too long (Max length 2048)"
 
+typedef enum			e_type
+{
+						LABEL,
+						INSTRUCTION,
+						REGISTER,
+						SSEPARATOR,
+						DIRECT_LABEL,
+						SEPARATOR,
+						DIRECT
+}						t_type;
+
 typedef struct          s_asm
 {
 	char				name[PROG_NAME_LENGTH + 1];

@@ -29,17 +29,17 @@
 **
 */
 
-void		u_lose(int need_free, char *to_free, char *note)
+void		u_lose(int need_free, char *to_free, char *note, t_asm *a)
 {
 	if (need_free == 1)
 	{
-		ft_putendl(note);
+		ft_printf("%s on line %i\n", note, a->current_line_number);
 		free(to_free);
 		exit(1);
 	}
 	else
 	{
-		ft_putendl(note);
+		ft_printf("%s on line %i\n", note, a->current_line_number);
 		exit(1);
 	}
 	return ;
@@ -58,12 +58,14 @@ void		insert_all_between_quotes_to_str(int fd, char *str, int limit, t_asm *a)
 	gnl = 2;
 	to = (limit == COMMENT_LENGTH) ? a->comment : a->name;
 	tmp_str = ft_strchr(str, '"');
+	if (!tmp_str)
+		return(u_lose(0, str, "No name was detected", a));
 	tmp_str++;
 	i = ft_strchr_n(tmp_str, '"');
 	while (i < 0 && gnl > 0)
 	{
 		if (wordlen + ((gnl == 2) ? (int)ft_strlen(tmp_str) : (int)ft_strlen(str)) > limit + 1)
-			return (u_lose((gnl == 2) ? 0 : 1, str, (limit == COMMENT_LENGTH) ? CCTL : CNTL));
+			return (u_lose((gnl == 2) ? 0 : 1, str, (limit == COMMENT_LENGTH) ? CCTL : CNTL, a));
 		(gnl == 2) ? ft_strcpy(to + wordlen, tmp_str) : ft_strcpy(to + wordlen, str);
 		wordlen += (gnl == 2) ? (int)ft_strlen(to) : (int)ft_strlen(str);
 		ft_strcpy(to + wordlen++, "\n");
@@ -73,7 +75,7 @@ void		insert_all_between_quotes_to_str(int fd, char *str, int limit, t_asm *a)
 		i = ft_strchr_n(str, '"');
 	}
 	if (wordlen + ((gnl == 2) ? (int)ft_strlen(tmp_str) : (int)ft_strlen(str)) > limit + 1)
-		return (u_lose((gnl == 2) ? 0 : 1, str, (limit == COMMENT_LENGTH) ? CCTL : CNTL));
+		return (u_lose((gnl == 2) ? 0 : 1, str, (limit == COMMENT_LENGTH) ? CCTL : CNTL, a));
 	(gnl == 2) ? ft_strncpy(to + wordlen, tmp_str, ft_strchr_n(tmp_str, '"')) : ft_strncpy(to + wordlen, str, ft_strchr_n(str, '"'));
 	(gnl == 2) ? i = 1 : free(str);
 }
