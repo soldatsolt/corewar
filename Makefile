@@ -5,7 +5,7 @@ OBJS=$(SRCS:SRCS%.c=OBJS%.o)
 HEADER=INCLUDES/corewar.h
 INCLUDES=INCLUDES
 LIBFT=libft/libft.a
-FLAGS =# -Wall -Wextra -Werror
+FLAGS = -Wall -Wextra #-Werror
 LIBFTCFILES = libft/*.c
 A_FILES=libft/libft.a libft/libftprintf.a
 NO_COLOR=\x1b[0m

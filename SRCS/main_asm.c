@@ -90,6 +90,7 @@ void		insert_comment_to_asm(int fd, char *str, t_asm *a)
 	i = 0;
 	if (a->f & F_COMMENT)
 	{
+		ft_printf("SYNTAX ERROR ON LINE [%d]\n", a->current_line_number);
 		ft_putendl_fd("Comment was declared before", 2);
 		exit(1);
 	}
@@ -106,6 +107,7 @@ void		insert_name_to_asm(int fd, char *str, t_asm *a)
 	i = 0;
 	if (a->f & F_NAME)
 	{
+		ft_printf("SYNTAX ERROR ON LINE [%d]\n", a->current_line_number);
 		ft_putendl_fd("Name was declared before", 2);
 		exit(1);
 	}
@@ -158,6 +160,54 @@ int			read_from_file(int fd, t_asm *a)
 	return (1);
 }
 
+int			if_its_instr(char *str)
+{
+/*
+ВСЁ ЭТО ЕСТЬ ОГРОМНЕЙШЕЕ ЗАБЛУЖДЕНИЕ. ИЗНАЧАЛЬНО МЫ С КОЛЛЕГАМИ ПОЛАГАЛИ, ЧТО
+НАЗВАНИЯ МЕТОК НЕ МОГУТ ПОВТОРЯТ ИМЕНА ИНСТРУКЦИЙ. НО КАК ЖЕ МЫ ЗАБЛУЖДАЛИСЬ
+В СВОЁМ НЕВЕДЕНИИ. К СОЖАЛЕНИЮ, МЫ ОКАЗАЛИСЬ НЕПРАВЫ. ПРИМЕР МОЖНО УВИДЕТЬ
+НА СТРОКАХ 7 И 8 ЧЕМПИОНА 42.s КАК ЖЕ ЖАЛЬ....
+
+Также нужно пропускать пустые строки, проверять, чтобы каждая строка (включая последнюю)
+оканчивалась на '\n'. Обратить внимаение на все TODO: . Стоит основательно продумать
+архитектуру, не пытаясь проломить стену лбом. У меня всё.
+*/
+	int		len;
+	int		i;
+
+	i = 0;
+	len = (int)ft_strlen(str);
+	while (i < 16)
+	{
+		if (len >= (int)ft_strlen(op_tab[i].name))
+		{
+			if (!ft_strncmp(str, op_tab[i].name, (int)ft_strlen(op_tab[i].name)))
+			{
+				printf("THE INSTR IS [%s]\n", str);
+				return (i);
+			}
+		}
+		i++;
+	}
+	return (0);// TODO: SAM PONYAL DA?
+}
+
+void		put_labels_to_asm(char *filename, t_asm *a)
+{
+	int		fd;
+	char	*str;
+
+	fd = open(filename, O_RDONLY);
+	// TODO: TYT VES' KOD
+	while (get_next_line(fd, &str))
+	{
+		if (!if_its_instr(ft_strtrim(str)))
+			printf("THE LABEL IS [%s]\n", str);
+		//TODO: FREE ETC.
+	}
+	close(fd);
+}
+
 int			main(int argc, char **argv)
 {
 	int		fd;
@@ -169,6 +219,7 @@ int			main(int argc, char **argv)
 		ft_putendl("Usage: ./vm_champs/asm <sourcefile.s>");
 	else
 	{
+		put_labels_to_asm(argv[argc - 1], &a);
 		fd = open(argv[argc - 1], O_RDONLY);
 		if (read(fd, str, 0) == -1)
 		{
