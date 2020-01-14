@@ -190,7 +190,7 @@ void		instr_to_tokens(t_asm *a, char *str)
 		tmp_token->next->next = NULL;
 
 
-		printf("[%s] TOKEN TYPE IS [INSTRUCTION] (%d), %d\n", str, tmp_token->type, tmp_token->instr);
+		printf("[%s] TOKEN TYPE IS [INSTRUCTION] (%d), %d\n", str, tmp_token->next->type, tmp_token->next->instr);
 	}
 	if (!n)
 	{
