@@ -28,16 +28,35 @@
 # define CNTL "Champion name too long (Max length 2048)"
 # define CCTL "Champion comment too long (Max length 2048)"
 
-typedef enum			e_type
+typedef enum
 {
 						LABEL,
 						INSTRUCTION,
 						REGISTER,
-						SSEPARATOR,
 						DIRECT_LABEL,
 						SEPARATOR,
-						DIRECT
+						DIRECT,
+						NEXT_LINE
 }						t_type;
+
+typedef struct          s_op
+{
+	char				*name;
+	int					n_args;
+	int					args[3];
+	int					op_num;
+	int					cycle;
+	char				*descr;
+	int					hz;
+	int					hz2;
+}						t_op;
+
+typedef struct          s_token
+{
+	t_type				type;
+	int					instr;
+	struct s_token		*next;
+}						t_token;
 
 typedef struct          s_labels
 {
@@ -51,20 +70,9 @@ typedef struct          s_asm
 	char				comment[COMMENT_LENGTH + 1];
 	int					f; // - Флаги. K примеру, было ли имя объявлено ранее или нет и тд.
 	int					current_line_number;
+	t_token				*tokens;
 	t_labels			*labels;
 }						t_asm;
-
-typedef struct          s_op
-{
-	char				*name;
-	int					n_args;
-	int					args[3];
-	int					op_num;
-	int					cycle;
-	char				*descr;
-	int					hz;
-	int					hz2;
-}						t_op;
 
 t_op    op_tab[17] =
 {

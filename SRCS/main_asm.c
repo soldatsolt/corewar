@@ -82,7 +82,6 @@ void		insert_all_between_quotes_to_str(int fd, char *str, int limit, t_asm *a)
 
 void		insert_comment_to_asm(int fd, char *str, t_asm *a)
 {
-	char	*tmp_str;
 	int		i;
 	int		gnl;
 
@@ -99,9 +98,56 @@ void		insert_comment_to_asm(int fd, char *str, t_asm *a)
 	insert_all_between_quotes_to_str(fd, str, COMMENT_LENGTH, a);
 }
 
+int			if_its_instr(char *str)
+{
+	int		len;
+	int		i;
+
+	i = 0;
+	len = (int)ft_strlen(str);
+	while (i < 16)
+	{
+		if (len >= (int)ft_strlen(op_tab[i].name))
+		{
+			if (!ft_strncmp(str, op_tab[i].name, (int)ft_strlen(op_tab[i].name)))
+			{
+				if (str[(int)ft_strlen(op_tab[i].name)] != LABEL_CHAR)
+				{
+					// printf("THE INSTR IS [%s]\n", str);
+					return (i + 1);
+				}
+			}
+		}
+		i++;
+	}
+	return (0);// TODO: SAM PONYAL DA?
+}
+
+int			if_l_chars(char *str)
+{
+	int		i;
+	int		l;
+
+	i = ft_strchr_n(str, ':');
+	if (i < 0)
+		return (0);
+	str[i] = 0;
+	i = 0;
+	l = (int)ft_strlen(str);
+	while (i < l)
+	{
+		if (!ft_strchr(LABEL_CHARS, str[i]))
+		{
+			printf("NON LABEL CHARS IN LABEL!!\n");
+			return (0);
+		}
+		i++;
+	}
+	return (1);
+}
+
 void		insert_name_to_asm(int fd, char *str, t_asm *a)
 {
-	char	*tmp_str;
 	int		i;
 
 	i = 0;
@@ -128,6 +174,37 @@ int			first_non_space_char(char *str)
 	return (i);
 }
 
+void		instr_to_tokens(t_asm *a, char *str)
+{
+	static int	n = 0;
+	t_token		*tmp_token;
+
+	tmp_token = a->tokens;
+	if(n)
+	{
+		while (tmp_token)
+			tmp_token = tmp_token->next;
+		tmp_token = (t_token *)malloc(sizeof(t_token));
+		tmp_token->type = INSTRUCTION;
+		tmp_token->instr = if_its_instr(str);
+		tmp_token->next = NULL;
+
+
+		printf("[%s] TOKEN TYPE IS [INSTRUCTION] (%d), %d\n", str, tmp_token->type, tmp_token->instr);
+	}
+	if (!n)
+	{
+		a->tokens = (t_token *)malloc(sizeof(t_token));
+		a->tokens->type = INSTRUCTION;
+		a->tokens->instr = if_its_instr(str);
+		a->tokens->next = NULL;
+		n++;
+
+
+		printf("[%s] TOKEN TYPE IS [INSTRUCTION] (%d), %d\n", str, a->tokens->type, a->tokens->instr);
+	}
+}
+
 void		parse_this_line(int fd, char *str, t_asm *a)
 {
 	str = ft_strtrim(str);
@@ -140,6 +217,8 @@ void		parse_this_line(int fd, char *str, t_asm *a)
 		insert_name_to_asm(fd, str, a);
 	else if (!ft_strncmp(str, COMMENT_CMD_STRING, 8))
 		insert_comment_to_asm(fd, str, a);
+	else if (if_its_instr(str))
+		instr_to_tokens(a, str);
 	free(str);
 }
 
@@ -160,56 +239,23 @@ int			read_from_file(int fd, t_asm *a)
 	return (1);
 }
 
-int			if_its_instr(char *str)
-{
-	int		len;
-	int		i;
-
-	i = 0;
-	len = (int)ft_strlen(str);
-	while (i < 16)
-	{
-		if (len >= (int)ft_strlen(op_tab[i].name))
-		{
-			if (!ft_strncmp(str, op_tab[i].name, (int)ft_strlen(op_tab[i].name)))
-			{
-				if (str[(int)ft_strlen(op_tab[i].name)] != LABEL_CHAR)
-				{
-					printf("THE INSTR IS [%s]\n", str);
-					return (i + 1);
-				}
-			}
-		}
-		i++;
-	}
-	return (0);// TODO: SAM PONYAL DA?
-}
-
-int			if_l_chars(char *str)
-{
-	int		k;
-
-	k = ft_strchr_n(str, ':');
-	if (k < 0)
-		return (0);
-	printf("K = %d\n", k);
-	str[k] = 0;
-	return (1);
-}
 
 void		put_labels_to_asm(char *filename, t_asm *a)
 {
 	int		fd;
 	char	*str;
+	char	*trimmed;
 
 	fd = open(filename, O_RDONLY);
-	// TODO: TYT VES' KOD
 	while (get_next_line(fd, &str))
 	{
-		if (ft_strtrim(str)[0] && !if_its_instr(ft_strtrim(str)) && if_l_chars(str))
-			printf("THE LABEL IS [%s]\n", str);
-		//TODO: FREE ETC.
+		trimmed = ft_strtrim(str);
+		if (trimmed[0] && !if_its_instr(trimmed) && if_l_chars(str))
+			printf("THE LABEL IS [%s]\n", str); // TODO: Это ещё нужно вкинуть в список меток
+		free(str);
+		free(trimmed);
 	}
+	free(str);
 	close(fd);
 }
 
@@ -218,6 +264,7 @@ int			main(int argc, char **argv)
 	int		fd;
 	char	str[BUFF_SIZE + 1];
 	t_asm	a;
+	t_token	*tmp;
 
 	a.f = 0;
 	if (argc < 2)
@@ -235,5 +282,17 @@ int			main(int argc, char **argv)
 		close(fd);
 		printf("NAME IS |%s|\nCOMM IS |%s|\n", a.name, a.comment);
 	}
+
+
+
+
+	printf("_______________________\n_______________________\n");
+	tmp = a.tokens;
+	while(tmp)
+	{
+		printf("[  %d  |  %d  ]---->", tmp->type, tmp->instr);
+		tmp = tmp->next;
+	}
+		printf("[NULL]\n");
 	return (0);
 }
