@@ -182,12 +182,12 @@ void		instr_to_tokens(t_asm *a, char *str)
 	tmp_token = a->tokens;
 	if(n)
 	{
-		while (tmp_token)
+		while (tmp_token->next)
 			tmp_token = tmp_token->next;
-		tmp_token = (t_token *)malloc(sizeof(t_token));
-		tmp_token->type = INSTRUCTION;
-		tmp_token->instr = if_its_instr(str);
-		tmp_token->next = NULL;
+		tmp_token->next = (t_token *)malloc(sizeof(t_token));
+		tmp_token->next->type = INSTRUCTION;
+		tmp_token->next->instr = if_its_instr(str);
+		tmp_token->next->next = NULL;
 
 
 		printf("[%s] TOKEN TYPE IS [INSTRUCTION] (%d), %d\n", str, tmp_token->type, tmp_token->instr);
