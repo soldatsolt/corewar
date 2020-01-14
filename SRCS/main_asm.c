@@ -162,16 +162,6 @@ int			read_from_file(int fd, t_asm *a)
 
 int			if_its_instr(char *str)
 {
-/*
-ВСЁ ЭТО ЕСТЬ ОГРОМНЕЙШЕЕ ЗАБЛУЖДЕНИЕ. ИЗНАЧАЛЬНО МЫ С КОЛЛЕГАМИ ПОЛАГАЛИ, ЧТО
-НАЗВАНИЯ МЕТОК НЕ МОГУТ ПОВТОРЯТ ИМЕНА ИНСТРУКЦИЙ. НО КАК ЖЕ МЫ ЗАБЛУЖДАЛИСЬ
-В СВОЁМ НЕВЕДЕНИИ. К СОЖАЛЕНИЮ, МЫ ОКАЗАЛИСЬ НЕПРАВЫ. ПРИМЕР МОЖНО УВИДЕТЬ
-НА СТРОКАХ 7 И 8 ЧЕМПИОНА 42.s КАК ЖЕ ЖАЛЬ....
-
-Также нужно пропускать пустые строки, проверять, чтобы каждая строка (включая последнюю)
-оканчивалась на '\n'. Обратить внимаение на все TODO: . Стоит основательно продумать
-архитектуру, не пытаясь проломить стену лбом. У меня всё.
-*/
 	int		len;
 	int		i;
 
@@ -183,13 +173,28 @@ int			if_its_instr(char *str)
 		{
 			if (!ft_strncmp(str, op_tab[i].name, (int)ft_strlen(op_tab[i].name)))
 			{
-				printf("THE INSTR IS [%s]\n", str);
-				return (i);
+				if (str[(int)ft_strlen(op_tab[i].name)] != LABEL_CHAR)
+				{
+					printf("THE INSTR IS [%s]\n", str);
+					return (i + 1);
+				}
 			}
 		}
 		i++;
 	}
 	return (0);// TODO: SAM PONYAL DA?
+}
+
+int			if_l_chars(char *str)
+{
+	int		k;
+
+	k = ft_strchr_n(str, ':');
+	if (k < 0)
+		return (0);
+	printf("K = %d\n", k);
+	str[k] = 0;
+	return (1);
 }
 
 void		put_labels_to_asm(char *filename, t_asm *a)
@@ -201,7 +206,7 @@ void		put_labels_to_asm(char *filename, t_asm *a)
 	// TODO: TYT VES' KOD
 	while (get_next_line(fd, &str))
 	{
-		if (!if_its_instr(ft_strtrim(str)))
+		if (ft_strtrim(str)[0] && !if_its_instr(ft_strtrim(str)) && if_l_chars(str))
 			printf("THE LABEL IS [%s]\n", str);
 		//TODO: FREE ETC.
 	}
