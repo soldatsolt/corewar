@@ -66,6 +66,7 @@ typedef struct          s_asm
 	char				comment[COMMENT_LENGTH + 1];
 	int					f; // - Флаги. K примеру, было ли имя объявлено ранее или нет и тд.
 	int					current_line_number;
+	char				*current_label;
 	t_token				*tokens;
 }						t_asm;
 

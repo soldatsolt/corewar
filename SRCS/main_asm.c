@@ -127,12 +127,13 @@ int			if_l_chars(char *str, t_asm *a)
 {
 	int		i;
 	int		l;
+	int		c;
 
-	i = ft_strchr_n(str, ':');
-	if (i < 0)
-		return (0);
-	str[i] = 0; // FIXME: ЭТО МЯГКО ГОВОРЯ НЕ ОЧЕНЬ
 	i = 0;
+	c = ft_strchr_n(str, LABEL_CHAR);
+	if (c < 0)
+		return (0);
+	str[c] = 0; // FIXME: ЭТО МЯГКО ГОВОРЯ НЕ ОЧЕНЬ
 	l = (int)ft_strlen(str);
 	while (i < l)
 	{
@@ -143,6 +144,8 @@ int			if_l_chars(char *str, t_asm *a)
 		}
 		i++;
 	}
+	a->current_label = ft_strdup(str);
+	str[c] = LABEL_CHAR;
 	return (1);
 }
 
@@ -208,7 +211,8 @@ void		skip_label_if_instr_ferther(char *str)
 	while (ft_strchr(LABEL_CHARS,*str))
 		str++;
 	str++;
-	// TODO: НУ САМ ПОНЯЛ ДА?
+	// эта фунция режет начало метки на случай, если сразу за ней (на этой же строчке)
+	// будет идти инструкция
 }
 
 void		label_to_tokens(t_asm *a, char *str)
@@ -224,7 +228,7 @@ void		label_to_tokens(t_asm *a, char *str)
 		tmp_token->next->type = LABEL;
 		tmp_token->next->instr = if_its_instr(str);
 		tmp_token->next->next = NULL;
-
+		tmp_token->next->label = a->current_label;
 		printf("[%s] TOKEN TYPE IS [LABEL] (%d), %d\n", str, tmp_token->next->type, tmp_token->next->instr);
 	}
 	else
@@ -233,7 +237,7 @@ void		label_to_tokens(t_asm *a, char *str)
 		a->tokens->type = LABEL;
 		a->tokens->instr = if_its_instr(str);
 		a->tokens->next = NULL;
-
+		a->tokens->label = a->current_label;
 		printf("[%s] TOKEN TYPE IS [LABEL] (%d), %d\n", str, a->tokens->type, a->tokens->instr);
 	}
 	skip_label_if_instr_ferther(str);
@@ -328,7 +332,10 @@ int			main(int argc, char **argv)
 	tmp = a.tokens;
 	while(tmp)
 	{
-		printf("[  %d  |  %d  ]---->", tmp->type, tmp->instr);
+		if (tmp->type == 1)
+			printf("[ INSTR | %s ]---->", op_tab[tmp->instr - 1].name);
+		else if (tmp->type == 0)
+			printf("[ LABEL | %s ]---->", tmp->label);
 		tmp = tmp->next;
 	}
 		printf("[NULL]\n");
