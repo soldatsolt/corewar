@@ -56,14 +56,9 @@ typedef struct          s_token
 {
 	t_type				type;
 	int					instr;
+	char				*label;
 	struct s_token		*next;
 }						t_token;
-
-typedef struct          s_labels
-{
-	char				*name;
-	struct s_labels		*next;
-}						t_labels;
 
 typedef struct          s_asm
 {
@@ -72,7 +67,6 @@ typedef struct          s_asm
 	int					f; // - Флаги. K примеру, было ли имя объявлено ранее или нет и тд.
 	int					current_line_number;
 	t_token				*tokens;
-	t_labels			*labels;
 }						t_asm;
 
 t_op    op_tab[17] =

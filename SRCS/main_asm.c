@@ -123,7 +123,7 @@ int			if_its_instr(char *str)
 	return (0);// TODO: SAM PONYAL DA?
 }
 
-int			if_l_chars(char *str)
+int			if_l_chars(char *str, t_asm *a)
 {
 	int		i;
 	int		l;
@@ -131,14 +131,14 @@ int			if_l_chars(char *str)
 	i = ft_strchr_n(str, ':');
 	if (i < 0)
 		return (0);
-	str[i] = 0;
+	str[i] = 0; // FIXME: ЭТО МЯГКО ГОВОРЯ НЕ ОЧЕНЬ
 	i = 0;
 	l = (int)ft_strlen(str);
 	while (i < l)
 	{
 		if (!ft_strchr(LABEL_CHARS, str[i]))
 		{
-			printf("NON LABEL CHARS IN LABEL!!\n");
+			printf("NON LABEL CHARS IN LABEL ON LINE[%d]!!\n", a->current_line_number);
 			return (0);
 		}
 		i++;
@@ -205,7 +205,10 @@ void		instr_to_tokens(t_asm *a, char *str)
 
 void		skip_label_if_instr_ferther(char *str)
 {
-	//TODO: НУ САМ ПОНЯЛ ДА?
+	while (ft_strchr(LABEL_CHARS,*str))
+		str++;
+	str++;
+	// TODO: НУ САМ ПОНЯЛ ДА?
 }
 
 void		label_to_tokens(t_asm *a, char *str)
@@ -234,6 +237,7 @@ void		label_to_tokens(t_asm *a, char *str)
 		printf("[%s] TOKEN TYPE IS [LABEL] (%d), %d\n", str, a->tokens->type, a->tokens->instr);
 	}
 	skip_label_if_instr_ferther(str);
+	printf("[[[[[%s]]]]]\n", str);
 }
 
 void		parse_this_line(int fd, char *str, t_asm *a)
@@ -248,7 +252,7 @@ void		parse_this_line(int fd, char *str, t_asm *a)
 		insert_name_to_asm(fd, str, a);
 	else if (!ft_strncmp(str, COMMENT_CMD_STRING, 8))
 		insert_comment_to_asm(fd, str, a);
-	if (str[0] && !if_its_instr(str) && if_l_chars(str))
+	if (str[0] && !if_its_instr(str) && if_l_chars(str, a))
 		label_to_tokens(a, str);
 	if (if_its_instr(str))
 		instr_to_tokens(a, str);
@@ -273,24 +277,24 @@ int			read_from_file(int fd, t_asm *a)
 }
 
 
-void		put_labels_to_asm(char *filename)
-{
-	int		fd;
-	char	*str;
-	char	*trimmed;
+// void		put_labels_to_asm(char *filename)
+// {
+// 	int		fd;
+// 	char	*str;
+// 	char	*trimmed;
 
-	fd = open(filename, O_RDONLY);
-	while (get_next_line(fd, &str))
-	{
-		trimmed = ft_strtrim(str);
-		if (trimmed[0] && !if_its_instr(trimmed) && if_l_chars(str))
-			printf("THE LABEL IS [%s]\n", str); // TODO: Это ещё нужно вкинуть в список меток
-		free(str);
-		free(trimmed);
-	}
-	free(str);
-	close(fd);
-}
+// 	fd = open(filename, O_RDONLY);
+// 	while (get_next_line(fd, &str))
+// 	{
+// 		trimmed = ft_strtrim(str);
+// 		if (trimmed[0] && !if_its_instr(trimmed) && if_l_chars(str))
+// 			printf("THE LABEL IS [%s]\n", str); // TODO: Это ещё нужно вкинуть в список меток
+// 		free(str);
+// 		free(trimmed);
+// 	}
+// 	free(str);
+// 	close(fd);
+// }
 
 int			main(int argc, char **argv)
 {
