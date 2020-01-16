@@ -104,6 +104,7 @@ int			if_its_instr(char *str)
 	int		i;
 
 	i = 0;
+	str = ft_strtrim(str);
 	len = (int)ft_strlen(str);
 	while (i < 16)
 	{
@@ -114,12 +115,14 @@ int			if_its_instr(char *str)
 				if (str[(int)ft_strlen(op_tab[i].name)] != LABEL_CHAR)
 				{
 					// printf("THE INSTR IS [%s]\n", str);
+					free(str);
 					return (i + 1);
 				}
 			}
 		}
 		i++;
 	}
+	free(str);
 	return (0);// TODO: SAM PONYAL DA?
 }
 
@@ -206,13 +209,17 @@ void		instr_to_tokens(t_asm *a, char *str)
 
 }
 
-void		skip_label_if_instr_ferther(char *str)
+void		skip_label_if_instr_ferther(t_asm *a, char *str)
 {
-	while (ft_strchr(LABEL_CHARS,*str))
-		str++;
-	str++;
 	// эта фунция режет начало метки на случай, если сразу за ней (на этой же строчке)
 	// будет идти инструкция
+	while (ft_strchr(LABEL_CHARS, *str))
+		str++;
+	str++;
+	while (*str == '\t' || *str == ' ')
+		str++;
+	if (if_its_instr(str))
+		instr_to_tokens(a, str);
 }
 
 void		label_to_tokens(t_asm *a, char *str)
@@ -240,7 +247,7 @@ void		label_to_tokens(t_asm *a, char *str)
 		a->tokens->label = a->current_label;
 		printf("[%s] TOKEN TYPE IS [LABEL] (%d), %d\n", str, a->tokens->type, a->tokens->instr);
 	}
-	skip_label_if_instr_ferther(str);
+	skip_label_if_instr_ferther(a, str);
 	printf("[[[[[%s]]]]]\n", str);
 }
 
@@ -258,7 +265,7 @@ void		parse_this_line(int fd, char *str, t_asm *a)
 		insert_comment_to_asm(fd, str, a);
 	if (str[0] && !if_its_instr(str) && if_l_chars(str, a))
 		label_to_tokens(a, str);
-	if (if_its_instr(str))
+	else if (if_its_instr(str))
 		instr_to_tokens(a, str);
 	free(str);
 }
