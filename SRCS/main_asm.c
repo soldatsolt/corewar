@@ -176,11 +176,10 @@ int			first_non_space_char(char *str)
 
 void		instr_to_tokens(t_asm *a, char *str)
 {
-	static int	n = 0;
 	t_token		*tmp_token;
 
 	tmp_token = a->tokens;
-	if(n)
+	if(a->tokens)
 	{
 		while (tmp_token->next)
 			tmp_token = tmp_token->next;
@@ -189,20 +188,52 @@ void		instr_to_tokens(t_asm *a, char *str)
 		tmp_token->next->instr = if_its_instr(str);
 		tmp_token->next->next = NULL;
 
-
 		printf("[%s] TOKEN TYPE IS [INSTRUCTION] (%d), %d\n", str, tmp_token->next->type, tmp_token->next->instr);
 	}
-	if (!n)
+	else
 	{
 		a->tokens = (t_token *)malloc(sizeof(t_token));
 		a->tokens->type = INSTRUCTION;
 		a->tokens->instr = if_its_instr(str);
 		a->tokens->next = NULL;
-		n++;
-
 
 		printf("[%s] TOKEN TYPE IS [INSTRUCTION] (%d), %d\n", str, a->tokens->type, a->tokens->instr);
 	}
+
+
+}
+
+void		skip_label_if_instr_ferther(char *str)
+{
+	//TODO: НУ САМ ПОНЯЛ ДА?
+}
+
+void		label_to_tokens(t_asm *a, char *str)
+{
+	t_token		*tmp_token;
+
+	tmp_token = a->tokens;
+	if(a->tokens)
+	{
+		while (tmp_token->next)
+			tmp_token = tmp_token->next;
+		tmp_token->next = (t_token *)malloc(sizeof(t_token));
+		tmp_token->next->type = LABEL;
+		tmp_token->next->instr = if_its_instr(str);
+		tmp_token->next->next = NULL;
+
+		printf("[%s] TOKEN TYPE IS [LABEL] (%d), %d\n", str, tmp_token->next->type, tmp_token->next->instr);
+	}
+	else
+	{
+		a->tokens = (t_token *)malloc(sizeof(t_token));
+		a->tokens->type = LABEL;
+		a->tokens->instr = if_its_instr(str);
+		a->tokens->next = NULL;
+
+		printf("[%s] TOKEN TYPE IS [LABEL] (%d), %d\n", str, a->tokens->type, a->tokens->instr);
+	}
+	skip_label_if_instr_ferther(str);
 }
 
 void		parse_this_line(int fd, char *str, t_asm *a)
@@ -217,7 +248,9 @@ void		parse_this_line(int fd, char *str, t_asm *a)
 		insert_name_to_asm(fd, str, a);
 	else if (!ft_strncmp(str, COMMENT_CMD_STRING, 8))
 		insert_comment_to_asm(fd, str, a);
-	else if (if_its_instr(str))
+	if (str[0] && !if_its_instr(str) && if_l_chars(str))
+		label_to_tokens(a, str);
+	if (if_its_instr(str))
 		instr_to_tokens(a, str);
 	free(str);
 }
@@ -240,7 +273,7 @@ int			read_from_file(int fd, t_asm *a)
 }
 
 
-void		put_labels_to_asm(char *filename, t_asm *a)
+void		put_labels_to_asm(char *filename)
 {
 	int		fd;
 	char	*str;
@@ -267,11 +300,12 @@ int			main(int argc, char **argv)
 	t_token	*tmp;
 
 	a.f = 0;
+	a.tokens = NULL;
 	if (argc < 2)
 		ft_putendl("Usage: ./vm_champs/asm <sourcefile.s>");
 	else
 	{
-		put_labels_to_asm(argv[argc - 1], &a);
+		// put_labels_to_asm(argv[argc - 1], &a);
 		fd = open(argv[argc - 1], O_RDONLY);
 		if (read(fd, str, 0) == -1)
 		{

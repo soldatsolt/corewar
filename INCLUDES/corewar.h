@@ -33,9 +33,10 @@ typedef enum
 						LABEL,
 						INSTRUCTION,
 						REGISTER,
-						DIRECT_LABEL,
-						SEPARATOR,
 						DIRECT,
+						INDIRECT,
+						SEPARATOR,
+						DIRECT_LABEL,
 						NEXT_LINE
 }						t_type;
 
