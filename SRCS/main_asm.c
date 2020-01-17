@@ -45,6 +45,12 @@ void		u_lose(int need_free, char *to_free, char *note, t_asm *a)
 	return ;
 }
 
+void		skip_whitespaces(char	**str)
+{
+	while(**str == ' ' || **str == '\t')
+		(*str)++;
+}
+
 void		insert_all_between_quotes_to_str(int fd, char *str, int limit, t_asm *a)
 {
 	char	*to;
@@ -103,10 +109,10 @@ int			if_its_instr(char *str)
 	int		len;
 	int		i;
 
-	i = 0;
+	i = 15;
 	str = ft_strtrim(str);
 	len = (int)ft_strlen(str);
-	while (i < 16)
+	while (i >= 0)
 	{
 		if (len >= (int)ft_strlen(op_tab[i].name))
 		{
@@ -120,10 +126,10 @@ int			if_its_instr(char *str)
 				}
 			}
 		}
-		i++;
+		i--;
 	}
 	free(str);
-	return (0);// TODO: SAM PONYAL DA?
+	return (0);
 }
 
 int			if_l_chars(char *str, t_asm *a)
@@ -136,7 +142,7 @@ int			if_l_chars(char *str, t_asm *a)
 	c = ft_strchr_n(str, LABEL_CHAR);
 	if (c < 0)
 		return (0);
-	str[c] = 0; // FIXME: ЭТО МЯГКО ГОВОРЯ НЕ ОЧЕНЬ
+	str[c] = 0;
 	l = (int)ft_strlen(str);
 	while (i < l)
 	{
@@ -180,6 +186,103 @@ int			first_non_space_char(char *str)
 	return (i);
 }
 
+char		*last_instr_name(t_asm *a)
+{
+	t_token	*tmp;
+
+	tmp = a->tokens;
+	while(tmp->next)
+	{
+		tmp = tmp->next;
+	}
+	return (op_tab[tmp->instr - 1].name);
+}
+
+t_token		*last_instr(t_asm *a)
+{
+	t_token	*tmp;
+
+	tmp = a->tokens;
+	while(tmp->next)
+	{
+		tmp = tmp->next;
+	}
+	return (tmp);
+}
+
+int			first_space_char(char *str)
+{
+	int i;
+
+	i = 0;
+	if (!str)
+		return (-1);
+	while (str[i] && (str[i] != ' ' && str[i] != '\t'))
+		i++;
+	return (i);
+}
+
+char		*next_arg(char *str)
+{
+	int		c;
+	int		n;
+	char	*s;
+
+	c = ft_strchr_n(str, SEPARATOR_CHAR);
+	if (c < 0)
+	{
+		n = first_space_char(str);
+		str[n] = 0;
+		return (ft_strdup(str));
+	}
+	str[c] = 0;
+	s = ft_strdup(str);
+	str[c] = SEPARATOR_CHAR;
+	return (s);
+}
+
+void		prep_for_next_arg(char **str, int f)
+{
+	int		c;
+
+	c = ft_strchr_n(*str, SEPARATOR_CHAR);
+	if (c < 0 && f != 1)
+	{
+		printf("=======SOMEtHING IS WRONG!!!!!!!!!!!!!===!\n"); //TODO: Нужно сделать нормальный выход
+		exit(1);
+	}
+	if (c < 0)
+		return ;
+	*str += c + 1;
+	skip_whitespaces(str);
+}
+
+void		parse_args_instr(t_asm *a, char *str)
+{
+	char	*s;
+	char	*last_inst;
+	char	*last_arg;
+	int		i;
+	t_token	*curr_instr;
+
+	curr_instr = last_instr(a);
+	i = 0;
+	last_inst = last_instr_name(a);
+	s = ft_strstr(str, last_inst) + ft_strlen(last_inst);
+	skip_whitespaces(&s);
+	printf("---------------\n");
+	printf("%s\n", s);
+	while (i < op_tab[a->current_instruction - 1].n_args)
+	{
+		last_arg = next_arg(s);
+		prep_for_next_arg(&s, op_tab[a->current_instruction - 1].n_args - i);
+		printf("ARG = %s\n", last_arg);
+		curr_instr->args[i] = last_arg;
+		i++;
+	}
+	printf("---------------\n");
+}
+
 void		instr_to_tokens(t_asm *a, char *str)
 {
 	t_token		*tmp_token;
@@ -194,7 +297,7 @@ void		instr_to_tokens(t_asm *a, char *str)
 		tmp_token->next->instr = if_its_instr(str);
 		tmp_token->next->next = NULL;
 
-		printf("[%s] TOKEN TYPE IS [INSTRUCTION] (%d), %d\n", str, tmp_token->next->type, tmp_token->next->instr);
+		// printf("[%s] TOKEN TYPE IS [INSTRUCTION] (%d), %d\n", str, tmp_token->next->type, tmp_token->next->instr);
 	}
 	else
 	{
@@ -203,7 +306,7 @@ void		instr_to_tokens(t_asm *a, char *str)
 		a->tokens->instr = if_its_instr(str);
 		a->tokens->next = NULL;
 
-		printf("[%s] TOKEN TYPE IS [INSTRUCTION] (%d), %d\n", str, a->tokens->type, a->tokens->instr);
+		// printf("[%s] TOKEN TYPE IS [INSTRUCTION] (%d), %d\n", str, a->tokens->type, a->tokens->instr);
 	}
 
 
@@ -219,7 +322,11 @@ void		skip_label_if_instr_ferther(t_asm *a, char *str)
 	while (*str == '\t' || *str == ' ')
 		str++;
 	if (if_its_instr(str))
+	{
+		a->current_instruction = if_its_instr(str);
 		instr_to_tokens(a, str);
+		parse_args_instr(a, str);
+	}
 }
 
 void		label_to_tokens(t_asm *a, char *str)
@@ -236,7 +343,7 @@ void		label_to_tokens(t_asm *a, char *str)
 		tmp_token->next->instr = if_its_instr(str);
 		tmp_token->next->next = NULL;
 		tmp_token->next->label = a->current_label;
-		printf("[%s] TOKEN TYPE IS [LABEL] (%d), %d\n", str, tmp_token->next->type, tmp_token->next->instr);
+		// printf("[%s] TOKEN TYPE IS [LABEL] (%d), %d\n", str, tmp_token->next->type, tmp_token->next->instr);
 	}
 	else
 	{
@@ -245,11 +352,12 @@ void		label_to_tokens(t_asm *a, char *str)
 		a->tokens->instr = if_its_instr(str);
 		a->tokens->next = NULL;
 		a->tokens->label = a->current_label;
-		printf("[%s] TOKEN TYPE IS [LABEL] (%d), %d\n", str, a->tokens->type, a->tokens->instr);
+		// printf("[%s] TOKEN TYPE IS [LABEL] (%d), %d\n", str, a->tokens->type, a->tokens->instr);
 	}
 	skip_label_if_instr_ferther(a, str);
-	printf("[[[[[%s]]]]]\n", str);
+	// printf("[[[[[%s]]]]]\n", str);
 }
+
 
 void		parse_this_line(int fd, char *str, t_asm *a)
 {
@@ -266,7 +374,11 @@ void		parse_this_line(int fd, char *str, t_asm *a)
 	if (str[0] && !if_its_instr(str) && if_l_chars(str, a))
 		label_to_tokens(a, str);
 	else if (if_its_instr(str))
+	{
+		a->current_instruction = if_its_instr(str);
 		instr_to_tokens(a, str);
+		parse_args_instr(a, str);
+	}
 	free(str);
 }
 
@@ -337,12 +449,22 @@ int			main(int argc, char **argv)
 
 	printf("_______________________\n_______________________\n");
 	tmp = a.tokens;
+	int i;
 	while(tmp)
 	{
+		i = 0;
 		if (tmp->type == 1)
-			printf("[ INSTR | %s ]---->", op_tab[tmp->instr - 1].name);
+		{
+			printf("[ INSTR | %s ]", op_tab[tmp->instr - 1].name);
+			while (i < op_tab[tmp->instr - 1].n_args)
+			{
+				printf(" ,%s ", tmp->args[i]);
+				i++;
+			}
+			printf("\n");
+		}
 		else if (tmp->type == 0)
-			printf("[ LABEL | %s ]---->", tmp->label);
+			printf("[ LABEL | %s ]\n", tmp->label);
 		tmp = tmp->next;
 	}
 		printf("[NULL]\n");

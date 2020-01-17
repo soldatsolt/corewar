@@ -37,6 +37,7 @@ typedef enum
 						INDIRECT,
 						SEPARATOR,
 						DIRECT_LABEL,
+						INDIRECT_LABEL,
 						NEXT_LINE
 }						t_type;
 
@@ -57,6 +58,7 @@ typedef struct          s_token
 	t_type				type;
 	int					instr;
 	char				*label;
+	char				*args[3];
 	struct s_token		*next;
 }						t_token;
 
@@ -67,6 +69,7 @@ typedef struct          s_asm
 	int					f; // - Флаги. K примеру, было ли имя объявлено ранее или нет и тд.
 	int					current_line_number;
 	char				*current_label;
+	int					current_instruction;
 	t_token				*tokens;
 }						t_asm;
 
