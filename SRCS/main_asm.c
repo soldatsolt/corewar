@@ -1,108 +1,10 @@
 #include "corewar.h"
-
+#include "tab.h"
 /*
 ** Начинаю делать проект корвар с асм
 ** Этот коммент больше для себя
 **
-**
-**
-**
-**
-**
-**
-**
-**
-**
-**
-**
-**
-**
-**
-**
-**
-**
-**
-**
-**
-**
-**
-**
 */
-
-void		u_lose(int need_free, char *to_free, char *note, t_asm *a)
-{
-	if (need_free == 1)
-	{
-		ft_printf("%s on line %i\n", note, a->current_line_number);
-		free(to_free);
-		exit(1);
-	}
-	else
-	{
-		ft_printf("%s on line %i\n", note, a->current_line_number);
-		exit(1);
-	}
-	return ;
-}
-
-void		skip_whitespaces(char	**str)
-{
-	while(**str == ' ' || **str == '\t')
-		(*str)++;
-}
-
-void		insert_all_between_quotes_to_str(int fd, char *str, int limit, t_asm *a)
-{
-	char	*to;
-	char	*tmp_str;
-	int		i;
-	int		gnl;
-	int		wordlen;
-
-	wordlen = 0;
-	i = 0;
-	gnl = 2;
-	to = (limit == COMMENT_LENGTH) ? a->comment : a->name;
-	tmp_str = ft_strchr(str, '"');
-	if (!tmp_str)
-		return(u_lose(0, str, "No name was detected", a));
-	tmp_str++;
-	i = ft_strchr_n(tmp_str, '"');
-	while (i < 0 && gnl > 0)
-	{
-		if (wordlen + ((gnl == 2) ? (int)ft_strlen(tmp_str) : (int)ft_strlen(str)) > limit + 1)
-			return (u_lose((gnl == 2) ? 0 : 1, str, (limit == COMMENT_LENGTH) ? CCTL : CNTL, a));
-		(gnl == 2) ? ft_strcpy(to + wordlen, tmp_str) : ft_strcpy(to + wordlen, str);
-		wordlen += (gnl == 2) ? (int)ft_strlen(to) : (int)ft_strlen(str);
-		ft_strcpy(to + wordlen++, "\n");
-		(gnl != 2) ? free(str) : i;
-		gnl = get_next_line(fd, &str);
-		a->current_line_number++;
-		i = ft_strchr_n(str, '"');
-	}
-	if (wordlen + ((gnl == 2) ? (int)ft_strlen(tmp_str) : (int)ft_strlen(str)) > limit + 1)
-		return (u_lose((gnl == 2) ? 0 : 1, str, (limit == COMMENT_LENGTH) ? CCTL : CNTL, a));
-	(gnl == 2) ? ft_strncpy(to + wordlen, tmp_str, ft_strchr_n(tmp_str, '"')) : ft_strncpy(to + wordlen, str, ft_strchr_n(str, '"'));
-	(gnl == 2) ? i = 1 : free(str);
-}
-
-void		insert_comment_to_asm(int fd, char *str, t_asm *a)
-{
-	int		i;
-	int		gnl;
-
-	gnl = 1;
-	i = 0;
-	if (a->f & F_COMMENT)
-	{
-		ft_printf("SYNTAX ERROR ON LINE [%d]\n", a->current_line_number);
-		ft_putendl_fd("Comment was declared before", 2);
-		exit(1);
-	}
-	a->f |= F_COMMENT;
-	ft_bzero(a->comment, COMMENT_LENGTH);
-	insert_all_between_quotes_to_str(fd, str, COMMENT_LENGTH, a);
-}
 
 int			if_its_instr(char *str)
 {
@@ -131,6 +33,18 @@ int			if_its_instr(char *str)
 	return (0);
 }
 
+char		*last_instr_name(t_asm *a)
+{
+	t_token	*tmp;
+
+	tmp = a->tokens;
+	while(tmp->next)
+	{
+		tmp = tmp->next;
+	}
+	return (op_tab[tmp->instr - 1].name);
+}
+
 int			if_l_chars(char *str, t_asm *a)
 {
 	int		i;
@@ -157,70 +71,6 @@ int			if_l_chars(char *str, t_asm *a)
 	return (1);
 }
 
-void		insert_name_to_asm(int fd, char *str, t_asm *a)
-{
-	int		i;
-
-	i = 0;
-	if (a->f & F_NAME)
-	{
-		ft_printf("SYNTAX ERROR ON LINE [%d]\n", a->current_line_number);
-		ft_putendl_fd("Name was declared before", 2);
-		exit(1);
-	}
-	a->f |= F_NAME;
-	ft_bzero(a->name, PROG_NAME_LENGTH);
-	insert_all_between_quotes_to_str(fd, str, PROG_NAME_LENGTH, a);
-}
-
-int			first_non_space_char(char *str)
-{
-	int i;
-
-	i = 0;
-	if (!str)
-		return (-1);
-	while (str[i] && (str[i] == ' ' || str[i] == '\t'))
-		i++;
-	return (i);
-}
-
-char		*last_instr_name(t_asm *a)
-{
-	t_token	*tmp;
-
-	tmp = a->tokens;
-	while(tmp->next)
-	{
-		tmp = tmp->next;
-	}
-	return (op_tab[tmp->instr - 1].name);
-}
-
-t_token		*last_instr(t_asm *a)
-{
-	t_token	*tmp;
-
-	tmp = a->tokens;
-	while(tmp->next)
-	{
-		tmp = tmp->next;
-	}
-	return (tmp);
-}
-
-int			first_space_char(char *str)
-{
-	int i;
-
-	i = 0;
-	if (!str)
-		return (-1);
-	while (str[i] && (str[i] != ' ' && str[i] != '\t'))
-		i++;
-	return (i);
-}
-
 char		*next_arg(char *str)
 {
 	int		c;
@@ -238,52 +88,6 @@ char		*next_arg(char *str)
 	s = ft_strdup(str);
 	str[c] = SEPARATOR_CHAR;
 	return (s);
-}
-
-void		free_token_content(t_token *t)
-{
-	int		i;
-
-	i = 0;
-	if (t->type == INSTRUCTION)
-	{
-		while (i < 3 && t->args[i])
-		{
-			free(t->args[i]);
-			i++;
-		}
-	}
-	else if (t->type == LABEL)
-	{
-		if (t->label)
-		{
-			free(t->label);
-			t->label = NULL;
-		}
-	}
-}
-
-void		free_all_tokens(t_token *t)
-{
-	t_token	*tmp;
-
-	while (t)
-	{
-		tmp = t;
-		t = t->next;
-		free_token_content(tmp);
-		free(tmp);
-	}
-}
-
-void		free_parse_exit(t_asm *a, int er_flag, char **to_free)
-{
-	free_all_tokens(a->tokens);
-	if (er_flag)
-		ft_printf("LEX ERROR ON LINE [%d]\n", a->current_line_number);
-	if (to_free)
-		free(*to_free);
-	exit(1);
 }
 
 void		prep_for_next_arg(t_asm *a, char **str, int f, char **to_free)
@@ -328,88 +132,6 @@ void		parse_args_instr(t_asm *a, char *str, char **to_free)
 	}
 	printf("---------------%s\n", s);
 }
-
-t_token		*init_instruction(t_token *t, char *str)
-{
-	t = (t_token *)malloc(sizeof(t_token));
-	t->type = INSTRUCTION;
-	t->instr = if_its_instr(str);
-	t->next = NULL;
-	t->args[0] = NULL;
-	t->args[1] = NULL;
-	t->args[2] = NULL;
-	t->label = NULL;
-	return (t);
-}
-
-void		instr_to_tokens(t_asm *a, char *str)
-{
-	t_token		*tmp_token;
-
-	tmp_token = a->tokens;
-	if(a->tokens)
-	{
-		while (tmp_token->next)
-			tmp_token = tmp_token->next;
-		tmp_token->next = init_instruction(tmp_token->next, str);
-	}
-	else
-	{
-		a->tokens = init_instruction(a->tokens, str);
-	}
-
-
-}
-
-void		skip_label_if_instr_ferther(t_asm *a, char *str)
-{
-	void	*to_free;
-
-	to_free = (void *)str;
-	while (ft_strchr(LABEL_CHARS, *str))
-		str++;
-	str++;
-	while (*str == '\t' || *str == ' ')
-		str++;
-	if (if_its_instr(str))
-	{
-		a->current_instruction = if_its_instr(str);
-		instr_to_tokens(a, str);
-		parse_args_instr(a, str, (char **)&to_free);
-	}
-}
-
-t_token		*init_label(t_asm *a, t_token *t, char *str)
-{
-	t = (t_token *)malloc(sizeof(t_token));
-	t->type = LABEL;
-	t->instr = if_its_instr(str);
-	t->next = NULL;
-	t->label = a->current_label;
-	t->args[0] = NULL;
-	t->args[1] = NULL;
-	t->args[2] = NULL;
-	return (t);
-}
-
-void		label_to_tokens(t_asm *a, char *str)
-{
-	t_token		*tmp_token;
-
-	tmp_token = a->tokens;
-	if(a->tokens)
-	{
-		while (tmp_token->next)
-			tmp_token = tmp_token->next;
-		tmp_token->next = init_label(a, tmp_token->next, str);
-	}
-	else
-	{
-		a->tokens = init_label(a, a->tokens, str);
-	}
-	skip_label_if_instr_ferther(a, str);
-}
-
 
 void		parse_this_line(int fd, char *str, t_asm *a)
 {
@@ -460,9 +182,7 @@ int			main(int argc, char **argv)
 	t_asm	a;
 	t_token	*tmp;
 
-	a.f = 0;
-	a.tokens = NULL;
-	a.current_label = NULL;
+	a = init_asm();
 	if (argc < 2)
 		ft_putendl("Usage: ./vm_champs/asm <sourcefile.s>");
 	else

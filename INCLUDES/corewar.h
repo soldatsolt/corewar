@@ -73,31 +73,27 @@ typedef struct          s_asm
 	t_token				*tokens;
 }						t_asm;
 
-t_op    op_tab[17] =
-{
-	{"live", 1, {T_DIR}, 1, 10, "alive", 0, 0},
-	{"ld", 2, {T_DIR | T_IND, T_REG}, 2, 5, "load", 1, 0},
-	{"st", 2, {T_REG, T_IND | T_REG}, 3, 5, "store", 1, 0},
-	{"add", 3, {T_REG, T_REG, T_REG}, 4, 10, "addition", 1, 0},
-	{"sub", 3, {T_REG, T_REG, T_REG}, 5, 10, "soustraction", 1, 0},
-	{"and", 3, {T_REG | T_DIR | T_IND, T_REG | T_IND | T_DIR, T_REG}, 6, 6,
-		"and (and  r1, r2, r3   r1&r2 -> r3", 1, 0},
-	{"or", 3, {T_REG | T_IND | T_DIR, T_REG | T_IND | T_DIR, T_REG}, 7, 6,
-		"or  (or   r1, r2, r3   r1 | r2 -> r3", 1, 0},
-	{"xor", 3, {T_REG | T_IND | T_DIR, T_REG | T_IND | T_DIR, T_REG}, 8, 6,
-		"xor (xor  r1, r2, r3   r1^r2 -> r3", 1, 0},
-	{"zjmp", 1, {T_DIR}, 9, 20, "jump if zero", 0, 1},
-	{"ldi", 3, {T_REG | T_DIR | T_IND, T_DIR | T_REG, T_REG}, 10, 25,
-		"load index", 1, 1},
-	{"sti", 3, {T_REG, T_REG | T_DIR | T_IND, T_DIR | T_REG}, 11, 25,
-		"store index", 1, 1},
-	{"fork", 1, {T_DIR}, 12, 800, "fork", 0, 1},
-	{"lld", 2, {T_DIR | T_IND, T_REG}, 13, 10, "long load", 1, 0},
-	{"lldi", 3, {T_REG | T_DIR | T_IND, T_DIR | T_REG, T_REG}, 14, 50,
-		"long load index", 1, 1},
-	{"lfork", 1, {T_DIR}, 15, 1000, "long fork", 0, 1},
-	{"aff", 1, {T_REG}, 16, 2, "aff", 1, 0},
-	{0, 0, {0}, 0, 0, 0, 0, 0}
-};
+t_token		*init_instruction(t_token *t, char *str);
+t_token		*init_label(t_asm *a, t_token *t, char *str);
+t_asm		init_asm(void);
+int			if_its_instr(char *str);
+void		u_lose(int need_free, char *to_free, char *note, t_asm *a);
+void		free_token_content(t_token *t);
+void		free_all_tokens(t_token *t);
+void		free_parse_exit(t_asm *a, int er_flag, char **to_free);
+void		parse_args_instr(t_asm *a, char *str, char **to_free);
+void		skip_label_if_instr_ferther(t_asm *a, char *str);
+void		skip_whitespaces(char	**str);
+void		instr_to_tokens(t_asm *a, char *str);
+void		insert_all_between_quotes_to_str(int fd, char *str, int limit,t_asm *a);
+void		insert_comment_to_asm(int fd, char *str, t_asm *a);
+void		insert_name_to_asm(int fd, char *str, t_asm *a);
+void		instr_to_tokens(t_asm *a, char *str);
+void		label_to_tokens(t_asm *a, char *str);
+int			first_non_space_char(char *str);
+char		*last_instr_name(t_asm *a);
+t_token		*last_instr(t_asm *a);
+int			first_space_char(char *str);
+
 
 #endif
