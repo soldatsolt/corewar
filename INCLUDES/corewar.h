@@ -85,7 +85,7 @@ void		parse_args_instr(t_asm *a, char *str, char **to_free);
 void		skip_label_if_instr_ferther(t_asm *a, char *str);
 void		skip_whitespaces(char	**str);
 void		instr_to_tokens(t_asm *a, char *str);
-void		insert_all_between_quotes_to_str(int fd, char *str, int limit,t_asm *a);
+void		insert_all_between_quotes_to_str(int fd, char *str, int limit, t_asm *a);
 void		insert_comment_to_asm(int fd, char *str, t_asm *a);
 void		insert_name_to_asm(int fd, char *str, t_asm *a);
 void		instr_to_tokens(t_asm *a, char *str);

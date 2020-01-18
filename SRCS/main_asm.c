@@ -3,7 +3,7 @@
 /*
 ** Начинаю делать проект корвар с асм
 ** Этот коммент больше для себя
-**
+** Проверка на \n в самом конце
 */
 
 int			if_its_instr(char *str)
@@ -97,7 +97,7 @@ void		prep_for_next_arg(t_asm *a, char **str, int f, char **to_free)
 	c = ft_strchr_n(*str, SEPARATOR_CHAR);
 	if ((c < 0 && f != 1) || (c >= 0 && f == 1))
 	{
-		printf("=======SOMEtHING IS WRONG!!!!!!!!!!!!!===!\n"); //TODO: Нужно сделать нормальный выход
+		printf("ERR ON LINE [%d]\n", a->current_line_number); //TODO: Нужно сделать нормальный выход
 		free_parse_exit(a, 1, to_free);
 		exit(1);
 	}
@@ -197,6 +197,22 @@ int			main(int argc, char **argv)
 		close(fd);
 		printf("NAME IS |%s|\nCOMM IS |%s|\n", a.name, a.comment);
 	}
+
+
+
+
+	int		o;
+
+	o = open("MYFILE", O_WRONLY | O_CREAT, 0777);
+	char *test;
+	test = (char *)malloc(4);
+	test[0] = 0x00;
+	test[1] = 0xea;
+	test[2] = 0x83;
+	test[3] = 0xf3;
+	write(o, test, 4);
+	close(0);
+
 
 
 

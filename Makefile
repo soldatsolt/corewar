@@ -34,6 +34,7 @@ clean:
 	@rm -f $(OBJS)
 	@$(MAKE) -C libft clean
 	@$(ECHO) "$(REMOVE_O_STRING)"
+	@rm -f MYFILE
 
 fclean: clean
 	@rm -f $(NAME)

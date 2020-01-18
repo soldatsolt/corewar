@@ -1,5 +1,15 @@
 {
 	"files.associations": {
 		"corewar.h": "c"
-	}
+	},
+	"workbench.colorTheme": "Horizon"
+
+	"workbench.colorCustomizations": {
+		"editorGroupHeader.tabsBackground": "#333333",
+		"editorGroup.border": "#3a3a3a",
+		"editorGroupHeader.tabsBorder": "#19191a",
+		"tab.inactiveBackground": "#1b1b1bcc",
+		"tab.activeBackground": "#000000"
+	  }
+
 }
