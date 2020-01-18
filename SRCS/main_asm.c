@@ -241,14 +241,21 @@ char		*next_arg(char *str)
 	return (s);
 }
 
-void		prep_for_next_arg(char **str, int f)
+void		free_parse_exit(t_asm *a, char *str)
+{
+
+	exit(1);
+}
+
+void		prep_for_next_arg(t_asm *a, char **str, int f)
 {
 	int		c;
 
 	c = ft_strchr_n(*str, SEPARATOR_CHAR);
-	if (c < 0 && f != 1)
+	if ((c < 0 && f != 1) || (c >= 0 && f == 1))
 	{
 		printf("=======SOMEtHING IS WRONG!!!!!!!!!!!!!===!\n"); //TODO: Нужно сделать нормальный выход
+		free_parse_exit(a, *str);
 		exit(1);
 	}
 	if (c < 0)
@@ -275,12 +282,25 @@ void		parse_args_instr(t_asm *a, char *str)
 	while (i < op_tab[a->current_instruction - 1].n_args)
 	{
 		last_arg = next_arg(s);
-		prep_for_next_arg(&s, op_tab[a->current_instruction - 1].n_args - i);
+		prep_for_next_arg(a, &s, op_tab[a->current_instruction - 1].n_args - i);
 		printf("ARG = %s\n", last_arg);
 		curr_instr->args[i] = last_arg;
 		i++;
 	}
-	printf("---------------\n");
+	printf("---------------%s\n", s);
+}
+
+t_token		*init_instruction(t_token *t, char *str)
+{
+	t = (t_token *)malloc(sizeof(t_token));
+	t->type = INSTRUCTION;
+	t->instr = if_its_instr(str);
+	t->next = NULL;
+	t->args[0] = NULL;
+	t->args[1] = NULL;
+	t->args[2] = NULL;
+	t->label = NULL;
+	return (t);
 }
 
 void		instr_to_tokens(t_asm *a, char *str)
@@ -292,19 +312,21 @@ void		instr_to_tokens(t_asm *a, char *str)
 	{
 		while (tmp_token->next)
 			tmp_token = tmp_token->next;
-		tmp_token->next = (t_token *)malloc(sizeof(t_token));
-		tmp_token->next->type = INSTRUCTION;
-		tmp_token->next->instr = if_its_instr(str);
-		tmp_token->next->next = NULL;
-
+		tmp_token->next = init_instruction(tmp_token->next, str);
+		// tmp_token->next = (t_token *)malloc(sizeof(t_token));
+		// tmp_token->next->type = INSTRUCTION;
+		// tmp_token->next->instr = if_its_instr(str);
+		// tmp_token->next->next = NULL;
+		// tmp_token->next->args[0] = 0;
 		// printf("[%s] TOKEN TYPE IS [INSTRUCTION] (%d), %d\n", str, tmp_token->next->type, tmp_token->next->instr);
 	}
 	else
 	{
-		a->tokens = (t_token *)malloc(sizeof(t_token));
-		a->tokens->type = INSTRUCTION;
-		a->tokens->instr = if_its_instr(str);
-		a->tokens->next = NULL;
+		a->tokens = init_instruction(a->tokens, str);
+		// a->tokens = (t_token *)malloc(sizeof(t_token));
+		// a->tokens->type = INSTRUCTION;
+		// a->tokens->instr = if_its_instr(str);
+		// a->tokens->next = NULL;
 
 		// printf("[%s] TOKEN TYPE IS [INSTRUCTION] (%d), %d\n", str, a->tokens->type, a->tokens->instr);
 	}
@@ -329,6 +351,20 @@ void		skip_label_if_instr_ferther(t_asm *a, char *str)
 	}
 }
 
+t_token		*init_label(t_asm *a, t_token *t, char *str)
+{
+t = (t_token *)malloc(sizeof(t_token));
+t->type = LABEL;
+t->instr = if_its_instr(str);
+t->next = NULL;
+t->label = a->current_label;
+t->args[0] = NULL;
+t->args[1] = NULL;
+t->args[2] = NULL;
+
+	return (t);
+}
+
 void		label_to_tokens(t_asm *a, char *str)
 {
 	t_token		*tmp_token;
@@ -338,20 +374,22 @@ void		label_to_tokens(t_asm *a, char *str)
 	{
 		while (tmp_token->next)
 			tmp_token = tmp_token->next;
-		tmp_token->next = (t_token *)malloc(sizeof(t_token));
-		tmp_token->next->type = LABEL;
-		tmp_token->next->instr = if_its_instr(str);
-		tmp_token->next->next = NULL;
-		tmp_token->next->label = a->current_label;
+		tmp_token->next = init_label(a, tmp_token->next, str);
+		// tmp_token->next = (t_token *)malloc(sizeof(t_token));
+		// tmp_token->next->type = LABEL;
+		// tmp_token->next->instr = if_its_instr(str);
+		// tmp_token->next->next = NULL;
+		// tmp_token->next->label = a->current_label;
 		// printf("[%s] TOKEN TYPE IS [LABEL] (%d), %d\n", str, tmp_token->next->type, tmp_token->next->instr);
 	}
 	else
 	{
-		a->tokens = (t_token *)malloc(sizeof(t_token));
-		a->tokens->type = LABEL;
-		a->tokens->instr = if_its_instr(str);
-		a->tokens->next = NULL;
-		a->tokens->label = a->current_label;
+		a->tokens = init_label(a, a->tokens, str);
+		// a->tokens = (t_token *)malloc(sizeof(t_token));
+		// a->tokens->type = LABEL;
+		// a->tokens->instr = if_its_instr(str);
+		// a->tokens->next = NULL;
+		// a->tokens->label = a->current_label;
 		// printf("[%s] TOKEN TYPE IS [LABEL] (%d), %d\n", str, a->tokens->type, a->tokens->instr);
 	}
 	skip_label_if_instr_ferther(a, str);
@@ -455,13 +493,13 @@ int			main(int argc, char **argv)
 		i = 0;
 		if (tmp->type == 1)
 		{
-			printf("[ INSTR | %s ]", op_tab[tmp->instr - 1].name);
+			printf("[ INSTR | %s", op_tab[tmp->instr - 1].name);
 			while (i < op_tab[tmp->instr - 1].n_args)
 			{
 				printf(" ,%s ", tmp->args[i]);
 				i++;
 			}
-			printf("\n");
+			printf("]\n");
 		}
 		else if (tmp->type == 0)
 			printf("[ LABEL | %s ]\n", tmp->label);
