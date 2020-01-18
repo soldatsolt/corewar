@@ -120,7 +120,6 @@ int			if_its_instr(char *str)
 			{
 				if (str[(int)ft_strlen(op_tab[i].name)] != LABEL_CHAR)
 				{
-					// printf("THE INSTR IS [%s]\n", str);
 					free(str);
 					return (i + 1);
 				}
@@ -353,22 +352,10 @@ void		instr_to_tokens(t_asm *a, char *str)
 		while (tmp_token->next)
 			tmp_token = tmp_token->next;
 		tmp_token->next = init_instruction(tmp_token->next, str);
-		// tmp_token->next = (t_token *)malloc(sizeof(t_token));
-		// tmp_token->next->type = INSTRUCTION;
-		// tmp_token->next->instr = if_its_instr(str);
-		// tmp_token->next->next = NULL;
-		// tmp_token->next->args[0] = 0;
-		// printf("[%s] TOKEN TYPE IS [INSTRUCTION] (%d), %d\n", str, tmp_token->next->type, tmp_token->next->instr);
 	}
 	else
 	{
 		a->tokens = init_instruction(a->tokens, str);
-		// a->tokens = (t_token *)malloc(sizeof(t_token));
-		// a->tokens->type = INSTRUCTION;
-		// a->tokens->instr = if_its_instr(str);
-		// a->tokens->next = NULL;
-
-		// printf("[%s] TOKEN TYPE IS [INSTRUCTION] (%d), %d\n", str, a->tokens->type, a->tokens->instr);
 	}
 
 
@@ -376,11 +363,8 @@ void		instr_to_tokens(t_asm *a, char *str)
 
 void		skip_label_if_instr_ferther(t_asm *a, char *str)
 {
-	// эта фунция режет начало метки на случай, если сразу за ней (на этой же строчке)
-	// будет идти инструкция
 	void	*to_free;
-	// FIXME: ЕСЛИ СДЕЛАТЬ TO_FREE CHAR*, ТО ОН БУДЕТ ПОЛЗТИ ЗА СТР
-	// FIXME: ПОЧЕМУ????? FIXME: FIXME: ??????????????????????/
+
 	to_free = (void *)str;
 	while (ft_strchr(LABEL_CHARS, *str))
 		str++;
@@ -418,25 +402,12 @@ void		label_to_tokens(t_asm *a, char *str)
 		while (tmp_token->next)
 			tmp_token = tmp_token->next;
 		tmp_token->next = init_label(a, tmp_token->next, str);
-		// tmp_token->next = (t_token *)malloc(sizeof(t_token));
-		// tmp_token->next->type = LABEL;
-		// tmp_token->next->instr = if_its_instr(str);
-		// tmp_token->next->next = NULL;
-		// tmp_token->next->label = a->current_label;
-		// printf("[%s] TOKEN TYPE IS [LABEL] (%d), %d\n", str, tmp_token->next->type, tmp_token->next->instr);
 	}
 	else
 	{
 		a->tokens = init_label(a, a->tokens, str);
-		// a->tokens = (t_token *)malloc(sizeof(t_token));
-		// a->tokens->type = LABEL;
-		// a->tokens->instr = if_its_instr(str);
-		// a->tokens->next = NULL;
-		// a->tokens->label = a->current_label;
-		// printf("[%s] TOKEN TYPE IS [LABEL] (%d), %d\n", str, a->tokens->type, a->tokens->instr);
 	}
 	skip_label_if_instr_ferther(a, str);
-	// printf("[[[[[%s]]]]]\n", str);
 }
 
 
@@ -471,6 +442,8 @@ int			read_from_file(int fd, t_asm *a)
 	while (get_next_line(fd, &str))
 	{
 		parse_this_line(fd, str, a);
+		// if (str[ft_strlen(str) - 1] != '\n')
+		// 	free_parse_exit(a, 1, &str);
 		free(str);
 		str = NULL;
 		a->current_line_number++;
@@ -479,26 +452,6 @@ int			read_from_file(int fd, t_asm *a)
 		free(str);
 	return (1);
 }
-
-
-// void		put_labels_to_asm(char *filename)
-// {
-// 	int		fd;
-// 	char	*str;
-// 	char	*trimmed;
-
-// 	fd = open(filename, O_RDONLY);
-// 	while (get_next_line(fd, &str))
-// 	{
-// 		trimmed = ft_strtrim(str);
-// 		if (trimmed[0] && !if_its_instr(trimmed) && if_l_chars(str))
-// 			printf("THE LABEL IS [%s]\n", str); // TODO: Это ещё нужно вкинуть в список меток
-// 		free(str);
-// 		free(trimmed);
-// 	}
-// 	free(str);
-// 	close(fd);
-// }
 
 int			main(int argc, char **argv)
 {
@@ -514,7 +467,6 @@ int			main(int argc, char **argv)
 		ft_putendl("Usage: ./vm_champs/asm <sourcefile.s>");
 	else
 	{
-		// put_labels_to_asm(argv[argc - 1], &a);
 		fd = open(argv[argc - 1], O_RDONLY);
 		if (read(fd, str, 0) == -1)
 		{
