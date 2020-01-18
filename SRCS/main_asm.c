@@ -241,13 +241,53 @@ char		*next_arg(char *str)
 	return (s);
 }
 
-void		free_parse_exit(t_asm *a, char *str)
+void		free_token_content(t_token *t)
 {
+	int		i;
 
+	i = 0;
+	if (t->type == INSTRUCTION)
+	{
+		while (i < 3 && t->args[i])
+		{
+			free(t->args[i]);
+			i++;
+		}
+	}
+	else if (t->type == LABEL)
+	{
+		if (t->label)
+		{
+			free(t->label);
+			t->label = NULL;
+		}
+	}
+}
+
+void		free_all_tokens(t_token *t)
+{
+	t_token	*tmp;
+
+	while (t)
+	{
+		tmp = t;
+		t = t->next;
+		free_token_content(tmp);
+		free(tmp);
+	}
+}
+
+void		free_parse_exit(t_asm *a, int er_flag, char **to_free)
+{
+	free_all_tokens(a->tokens);
+	if (er_flag)
+		ft_printf("LEX ERROR ON LINE [%d]\n", a->current_line_number);
+	if (to_free)
+		free(*to_free);
 	exit(1);
 }
 
-void		prep_for_next_arg(t_asm *a, char **str, int f)
+void		prep_for_next_arg(t_asm *a, char **str, int f, char **to_free)
 {
 	int		c;
 
@@ -255,7 +295,7 @@ void		prep_for_next_arg(t_asm *a, char **str, int f)
 	if ((c < 0 && f != 1) || (c >= 0 && f == 1))
 	{
 		printf("=======SOMEtHING IS WRONG!!!!!!!!!!!!!===!\n"); //TODO: Нужно сделать нормальный выход
-		free_parse_exit(a, *str);
+		free_parse_exit(a, 1, to_free);
 		exit(1);
 	}
 	if (c < 0)
@@ -264,7 +304,7 @@ void		prep_for_next_arg(t_asm *a, char **str, int f)
 	skip_whitespaces(str);
 }
 
-void		parse_args_instr(t_asm *a, char *str)
+void		parse_args_instr(t_asm *a, char *str, char **to_free)
 {
 	char	*s;
 	char	*last_inst;
@@ -282,7 +322,7 @@ void		parse_args_instr(t_asm *a, char *str)
 	while (i < op_tab[a->current_instruction - 1].n_args)
 	{
 		last_arg = next_arg(s);
-		prep_for_next_arg(a, &s, op_tab[a->current_instruction - 1].n_args - i);
+		prep_for_next_arg(a, &s, op_tab[a->current_instruction - 1].n_args - i, to_free);
 		printf("ARG = %s\n", last_arg);
 		curr_instr->args[i] = last_arg;
 		i++;
@@ -338,6 +378,10 @@ void		skip_label_if_instr_ferther(t_asm *a, char *str)
 {
 	// эта фунция режет начало метки на случай, если сразу за ней (на этой же строчке)
 	// будет идти инструкция
+	void	*to_free;
+	// FIXME: ЕСЛИ СДЕЛАТЬ TO_FREE CHAR*, ТО ОН БУДЕТ ПОЛЗТИ ЗА СТР
+	// FIXME: ПОЧЕМУ????? FIXME: FIXME: ??????????????????????/
+	to_free = (void *)str;
 	while (ft_strchr(LABEL_CHARS, *str))
 		str++;
 	str++;
@@ -347,21 +391,20 @@ void		skip_label_if_instr_ferther(t_asm *a, char *str)
 	{
 		a->current_instruction = if_its_instr(str);
 		instr_to_tokens(a, str);
-		parse_args_instr(a, str);
+		parse_args_instr(a, str, (char **)&to_free);
 	}
 }
 
 t_token		*init_label(t_asm *a, t_token *t, char *str)
 {
-t = (t_token *)malloc(sizeof(t_token));
-t->type = LABEL;
-t->instr = if_its_instr(str);
-t->next = NULL;
-t->label = a->current_label;
-t->args[0] = NULL;
-t->args[1] = NULL;
-t->args[2] = NULL;
-
+	t = (t_token *)malloc(sizeof(t_token));
+	t->type = LABEL;
+	t->instr = if_its_instr(str);
+	t->next = NULL;
+	t->label = a->current_label;
+	t->args[0] = NULL;
+	t->args[1] = NULL;
+	t->args[2] = NULL;
 	return (t);
 }
 
@@ -415,7 +458,7 @@ void		parse_this_line(int fd, char *str, t_asm *a)
 	{
 		a->current_instruction = if_its_instr(str);
 		instr_to_tokens(a, str);
-		parse_args_instr(a, str);
+		parse_args_instr(a, str, &str);
 	}
 	free(str);
 }
@@ -466,6 +509,7 @@ int			main(int argc, char **argv)
 
 	a.f = 0;
 	a.tokens = NULL;
+	a.current_label = NULL;
 	if (argc < 2)
 		ft_putendl("Usage: ./vm_champs/asm <sourcefile.s>");
 	else
@@ -505,6 +549,7 @@ int			main(int argc, char **argv)
 			printf("[ LABEL | %s ]\n", tmp->label);
 		tmp = tmp->next;
 	}
-		printf("[NULL]\n");
+	printf("[NULL]\n");
+	free_parse_exit(&a, 0, 0);
 	return (0);
 }
