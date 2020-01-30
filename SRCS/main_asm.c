@@ -1,10 +1,48 @@
 #include "corewar.h"
-#include "tab.h"
+
 /*
 ** Начинаю делать проект корвар с асм
 ** Этот коммент больше для себя
 ** Проверка на \n в самом конце
+FIXME: stir10,%-510,%0 НЕ ДОЛЖНА РАБОТАТЬ, НО У МЕНЯ РАБОТАЕТ
+НУЖНЫ ПРОБЕЛЫ / ТАБЫ ПОСЛЕ САМОЙ ИНСТРУКЦИИ!!
 */
+
+t_op    op_tab[17] =
+{
+	{"live", 1, {T_DIR}, 1, 10, "alive", 0, 0},
+	{"ld", 2, {T_DIR | T_IND, T_REG}, 2, 5, "load", 1, 0},
+	{"st", 2, {T_REG, T_IND | T_REG}, 3, 5, "store", 1, 0},
+	{"add", 3, {T_REG, T_REG, T_REG}, 4, 10, "addition", 1, 0},
+	{"sub", 3, {T_REG, T_REG, T_REG}, 5, 10, "soustraction", 1, 0},
+	{"and", 3, {T_REG | T_DIR | T_IND, T_REG | T_IND | T_DIR, T_REG}, 6, 6,
+		"and (and  r1, r2, r3   r1&r2 -> r3", 1, 0},
+	{"or", 3, {T_REG | T_IND | T_DIR, T_REG | T_IND | T_DIR, T_REG}, 7, 6,
+		"or  (or   r1, r2, r3   r1 | r2 -> r3", 1, 0},
+	{"xor", 3, {T_REG | T_IND | T_DIR, T_REG | T_IND | T_DIR, T_REG}, 8, 6,
+		"xor (xor  r1, r2, r3   r1^r2 -> r3", 1, 0},
+	{"zjmp", 1, {T_DIR}, 9, 20, "jump if zero", 0, 1},
+	{"ldi", 3, {T_REG | T_DIR | T_IND, T_DIR | T_REG, T_REG}, 10, 25,
+		"load index", 1, 1},
+	{"sti", 3, {T_REG, T_REG | T_DIR | T_IND, T_DIR | T_REG}, 11, 25,
+		"store index", 1, 1},
+	{"fork", 1, {T_DIR}, 12, 800, "fork", 0, 1},
+	{"lld", 2, {T_DIR | T_IND, T_REG}, 13, 10, "long load", 1, 0},
+	{"lldi", 3, {T_REG | T_DIR | T_IND, T_DIR | T_REG, T_REG}, 14, 50,
+		"long load index", 1, 1},
+	{"lfork", 1, {T_DIR}, 15, 1000, "long fork", 0, 1},
+	{"aff", 1, {T_REG}, 16, 2, "aff", 1, 0},
+	{0, 0, {0}, 0, 0, 0, 0, 0}
+};
+
+char	g_magic_header[4] = 
+{0x00, 0xea, 0x83, 0xf3};
+
+char	g_null[4] = 
+{0x00, 0x00, 0x00, 0x00};
+
+int		g_dir_size[17] = 
+{0, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 4, 2, 2, 4};
 
 int			if_its_instr(char *str)
 {
@@ -175,6 +213,26 @@ int			read_from_file(int fd, t_asm *a)
 	return (1);
 }
 
+void		write_to_exec(t_asm *a)
+{
+	int		o;
+
+	o = open("MYFILE", O_WRONLY | O_CREAT | O_TRUNC, 0777);
+	char *test;
+	test = (char *)malloc(4);
+	write(o, g_magic_header, 4);
+	write(o, a->name, PROG_NAME_LENGTH);
+	write(o, g_null, 4);
+	// TODO: Здесь должна быть часть EXEC кода чампиона. Где взять - хз((((
+	write(o, a->comment, COMMENT_LENGTH);
+
+
+
+
+
+	close(0);
+}
+
 int			main(int argc, char **argv)
 {
 	int		fd;
@@ -201,17 +259,7 @@ int			main(int argc, char **argv)
 
 
 
-	int		o;
-
-	o = open("MYFILE", O_WRONLY | O_CREAT, 0777);
-	char *test;
-	test = (char *)malloc(4);
-	test[0] = 0x00;
-	test[1] = 0xea;
-	test[2] = 0x83;
-	test[3] = 0xf3;
-	write(o, test, 4);
-	close(0);
+	write_to_exec(&a);
 
 
 

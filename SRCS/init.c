@@ -29,10 +29,15 @@ t_token		*init_label(t_asm *a, t_token *t, char *str)
 t_asm		init_asm(void)
 {
 	t_asm	a;
+	void	*s;
 
 	a.f = 0;
 	a.tokens = 0;
 	a.current_instruction = 0;
 	a.current_label = NULL;
+	s = (void *)a.name;
+	ft_bzero(a.name, (size_t)(PROG_NAME_LENGTH + 1));
+	s = (void *)a.comment;
+	ft_bzero(a.comment, (size_t)(COMMENT_LENGTH + 1));
 	return (a);
 }

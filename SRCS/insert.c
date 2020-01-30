@@ -49,7 +49,6 @@ void		insert_comment_to_asm(int fd, char *str, t_asm *a)
 		exit(1);
 	}
 	a->f |= F_COMMENT;
-	ft_bzero(a->comment, COMMENT_LENGTH);
 	insert_all_between_quotes_to_str(fd, str, COMMENT_LENGTH, a);
 }
 
@@ -65,7 +64,6 @@ void		insert_name_to_asm(int fd, char *str, t_asm *a)
 		exit(1);
 	}
 	a->f |= F_NAME;
-	ft_bzero(a->name, PROG_NAME_LENGTH);
 	insert_all_between_quotes_to_str(fd, str, PROG_NAME_LENGTH, a);
 }
 
