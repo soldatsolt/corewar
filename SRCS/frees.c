@@ -55,7 +55,7 @@ void		free_all_tokens(t_token *t)
 void		free_parse_exit(t_asm *a, int er_flag, char **to_free)
 {
 	free_all_tokens(a->tokens);
-	if (er_flag)
+	if (er_flag) // er_flag = 1 если ошибка и он выходит
 		ft_printf("LEX ERROR ON LINE [%d]\n", a->current_line_number);
 	if (to_free)
 		free(*to_free);

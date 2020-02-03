@@ -44,6 +44,23 @@ char	g_null[4] =
 int		g_dir_size[17] = 
 {0, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 4, 2, 2, 4};
 
+
+// TODO: СДЕЛАТЬ ЭТУ ФУНКЦИЮ НОРМАЛЬНОЙ И ПРИДУМАЬБ, КАК ЕЁ НОРМАЛЬНО ЮЗАТЬ
+//МОЖНО КАК ДЛЯ ПОДСЧЕТА ПАМЯТИ, И ЕЩЁ ДЛЯ ЧЕГО-НИБУДЬ))
+t_type			define_arg_type(char *str, int n)
+{
+	if (str[0] == '%' && str[1] && str[1] == ':')
+		return (DIRECT_LABEL);
+	else if (str[0] == '%')
+		return (DIRECT);
+	else if (str[0] == 'r')
+		return (REGISTER);
+	else if (str[0] >= '0' && str[0] <= '9')
+		return (INDIRECT);
+	else
+		return (ERR);
+}
+
 int			if_its_instr(char *str)
 {
 	int		len;
@@ -135,9 +152,7 @@ void		prep_for_next_arg(t_asm *a, char **str, int f, char **to_free)
 	c = ft_strchr_n(*str, SEPARATOR_CHAR);
 	if ((c < 0 && f != 1) || (c >= 0 && f == 1))
 	{
-		printf("ERR ON LINE [%d]\n", a->current_line_number); //TODO: Нужно сделать нормальный выход
 		free_parse_exit(a, 1, to_free);
-		exit(1);
 	}
 	if (c < 0)
 		return ;
@@ -157,6 +172,10 @@ void		parse_args_instr(t_asm *a, char *str, char **to_free)
 	i = 0;
 	last_inst = last_instr_name(a);
 	s = ft_strstr(str, last_inst) + ft_strlen(last_inst);
+	if (s[0] != ' ' && s[0] != '\t' && (s[0] == 'r'))
+	{
+		free_parse_exit(a, 1, to_free);
+	}
 	skip_whitespaces(&s);
 	printf("---------------\n");
 	printf("%s\n", s);

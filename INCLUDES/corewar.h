@@ -38,7 +38,8 @@ typedef enum
 						SEPARATOR,
 						DIRECT_LABEL,
 						INDIRECT_LABEL,
-						NEXT_LINE
+						NEXT_LINE,
+						ERR
 }						t_type;
 
 typedef struct          s_op

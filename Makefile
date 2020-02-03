@@ -2,7 +2,7 @@ MAKE=make
 NAME=asm
 SRCS=SRCS/main_asm.c SRCS/init.c SRCS/frees.c SRCS/skip.c SRCS/insert.c SRCS/first_last.c
 OBJS=$(SRCS:SRCS%.c=OBJS%.o)
-HEADER=INCLUDES/corewar.h INCLUDES/tab.h
+HEADER=INCLUDES/corewar.h
 INCLUDES=INCLUDES
 LIBFT=libft/libft.a
 FLAGS = -Wall -Wextra #-Werror
