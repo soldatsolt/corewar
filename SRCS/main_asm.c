@@ -35,6 +35,19 @@ t_op    op_tab[17] =
 	{0, 0, {0}, 0, 0, 0, 0, 0}
 };
 
+char	tok_to_str[10][15] = {
+						"LABEL",
+						"INSTRUCTION",
+						"REGISTER",
+						"DIRECT",
+						"INDIRECT",
+						"SEPARATOR",
+						"DIRECT_LABEL",
+						"INDIRECT_LABEL",
+						"NEXT_LINE",
+						"ERR"
+};
+
 char	g_magic_header[4] = 
 {0x00, 0xea, 0x83, 0xf3};
 
@@ -47,8 +60,14 @@ int		g_dir_size[17] =
 
 // TODO: СДЕЛАТЬ ЭТУ ФУНКЦИЮ НОРМАЛЬНОЙ И ПРИДУМАЬБ, КАК ЕЁ НОРМАЛЬНО ЮЗАТЬ
 //МОЖНО КАК ДЛЯ ПОДСЧЕТА ПАМЯТИ, И ЕЩЁ ДЛЯ ЧЕГО-НИБУДЬ))
-t_type			define_arg_type(char *str, int n)
+t_type			define_arg_type(t_token *t, int n)
 {
+	char	*str;
+
+	if (n < 3)
+		str = t->args[n];
+	else
+		return (ERR);
 	if (str[0] == '%' && str[1] && str[1] == ':')
 		return (DIRECT_LABEL);
 	else if (str[0] == '%')
@@ -248,7 +267,7 @@ void		write_to_exec(t_asm *a)
 
 
 
-
+	free(test);
 	close(0);
 }
 
@@ -295,7 +314,7 @@ int			main(int argc, char **argv)
 			printf("[ INSTR | %s", op_tab[tmp->instr - 1].name);
 			while (i < op_tab[tmp->instr - 1].n_args)
 			{
-				printf(" ,%s ", tmp->args[i]);
+				printf(" ,%s-->%s ", tmp->args[i], tok_to_str[define_arg_type(tmp, i)]);
 				i++;
 			}
 			printf("]\n");
