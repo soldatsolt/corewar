@@ -4,8 +4,14 @@
 ** Начинаю делать проект корвар с асм
 ** Этот коммент больше для себя
 ** Проверка на \n в самом конце
-FIXME: stir10,%-510,%0 НЕ ДОЛЖНА РАБОТАТЬ, НО У МЕНЯ РАБОТАЕТ
-НУЖНЫ ПРОБЕЛЫ / ТАБЫ ПОСЛЕ САМОЙ ИНСТРУКЦИИ!!
+FIXME: НЕ ОБРАБОТАЛ КОММЕНТАРИИ!!!! 
+ld	%0,r11#sdasdas
+ПИШЕТ
+[ INSTR | ld ,%0-->DIRECT  ,r11#sdasdas-->REGISTER ]
+
+
+
+
 */
 
 t_op    op_tab[17] =
@@ -228,6 +234,10 @@ void		parse_args_instr(t_asm *a, char *str, char **to_free)
 		curr_instr->args[i] = last_arg;
 		i++;
 	}
+	if (ft_strchr(last_arg, COMMENT_CHAR))
+		curr_instr->args[i - 1][ft_strchr_n(last_arg, COMMENT_CHAR)] = '\0';
+	else if (ft_strchr(last_arg, ALT_COMMENT_CHAR)) //TODO: СДЕЛАТЬ КАК-НИБУДЬ НОРМАЛЬНО
+		curr_instr->args[i - 1][ft_strchr_n(last_arg, ALT_COMMENT_CHAR)] = '\0';
 	a->exec_code_size += size_of_args(curr_instr);
 	printf("---------------%s\n", s);
 }
@@ -274,23 +284,72 @@ int			read_from_file(int fd, t_asm *a)
 	return (1);
 }
 
+void		write_exec_code_size_to_bin(t_asm *a, int o)
+{
+	char	*str;
+	int		n;
+	char	*tobin;
+	int		i;
+
+	i = 0;
+	tobin = ft_strnew(4);
+	str = ft_itoa_base_small_ll((uint64_t)a->exec_code_size, 16);
+	n = 8 - (int)ft_strlen(str);
+	while (n > 1)
+	{
+		tobin[i] = '\0';
+		n -= 2;
+		i++;
+	}
+	while (i < 4)
+	{
+		if (i == 0)
+			tobin[i] = a->exec_code_size / 0x1000000;
+		else if (i == 1)
+			tobin[i] = a->exec_code_size / 0x10000;
+		else if (i == 2)
+			tobin[i] = a->exec_code_size / 0x100;
+		else if (i == 3)
+			tobin[i] = a->exec_code_size % 0x100;
+		i++;
+	}
+	write(o, tobin, 4);
+	free(tobin);
+	free(str);
+}
+
+void		write_instr_to_bin(t_asm *a, t_token *t, int o)
+{
+	char	*str;
+
+	str = ft_strnew(size_of_args(t) + 1);
+	str[0] = op_tab[t->instr - 1].op_num;
+	write(o, str, size_of_args(t) + 1);
+	if (op_tab[t->instr - 1].code_arg_type)
+		str[1] = put_arg_type_to_str(); // TODO: МБ ЗДЕСЬ БУДЕТ ЛУЧШЕ ИДТИ ПО УКАЗАТЕЛЮ, 
+		// А НЕ ПО ИНДЕКСУ
+}
+
 void		write_to_exec(t_asm *a)
 {
 	int		o;
+	t_token	*tmp;
 
+	tmp = a->tokens;
 	o = open("MYFILE", O_WRONLY | O_CREAT | O_TRUNC, 0777);
-	char *test;
-	test = (char *)malloc(4);
 	write(o, g_magic_header, 4);
 	write(o, a->name, PROG_NAME_LENGTH);
 	write(o, g_null, 4);
 	// TODO: Здесь должна быть часть EXEC кода чампиона. Где взять - хз((((
+	write_exec_code_size_to_bin(a, o);
 	write(o, a->comment, COMMENT_LENGTH);
+	while (tmp)
+	{
+		if (tmp->type == INSTRUCTION)
+			write_instr_to_bin(a, tmp, o);
+		tmp = tmp->next;
+	}
 
-
-
-
-	free(test);
 	close(0);
 }
 
