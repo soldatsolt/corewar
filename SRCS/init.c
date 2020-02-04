@@ -31,6 +31,7 @@ t_asm		init_asm(void)
 	t_asm	a;
 	void	*s;
 
+	a.exec_code_size = 0;
 	a.f = 0;
 	a.tokens = 0;
 	a.current_instruction = 0;

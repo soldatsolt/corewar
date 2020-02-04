@@ -50,7 +50,7 @@ typedef struct          s_op
 	int					op_num;
 	int					cycle;
 	char				*descr;
-	int					hz;
+	int					code_arg_type;
 	int					hz2;
 }						t_op;
 
@@ -71,6 +71,7 @@ typedef struct          s_asm
 	int					current_line_number;
 	char				*current_label;
 	int					current_instruction;
+	int					exec_code_size;
 	t_token				*tokens;
 }						t_asm;
 

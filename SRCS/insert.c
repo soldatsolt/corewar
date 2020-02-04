@@ -82,6 +82,7 @@ void		instr_to_tokens(t_asm *a, char *str)
 	{
 		a->tokens = init_instruction(a->tokens, str);
 	}
+	a->exec_code_size++;
 }
 
 void		label_to_tokens(t_asm *a, char *str)

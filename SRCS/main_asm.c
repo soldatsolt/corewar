@@ -179,6 +179,28 @@ void		prep_for_next_arg(t_asm *a, char **str, int f, char **to_free)
 	skip_whitespaces(str);
 }
 
+int			size_of_args(t_token *t) // для первого live : instr = 1, arg = %42
+{
+	int		i;
+	int		size;
+
+	size = 0;
+	i = 0;
+	while (i < op_tab[t->instr - 1].n_args)
+	{
+		if (define_arg_type(t, i) == REGISTER)
+			size++;
+		else if (define_arg_type(t, i) == INDIRECT)
+			size += 2;
+		else if (define_arg_type(t, i) == DIRECT || define_arg_type(t, i) == DIRECT_LABEL)
+			size += g_dir_size[t->instr];
+		i++;
+	}
+	if (op_tab[t->instr - 1].code_arg_type)
+		size++;
+	return (size);
+}
+
 void		parse_args_instr(t_asm *a, char *str, char **to_free)
 {
 	char	*s;
@@ -206,6 +228,7 @@ void		parse_args_instr(t_asm *a, char *str, char **to_free)
 		curr_instr->args[i] = last_arg;
 		i++;
 	}
+	a->exec_code_size += size_of_args(curr_instr);
 	printf("---------------%s\n", s);
 }
 
@@ -324,6 +347,7 @@ int			main(int argc, char **argv)
 		tmp = tmp->next;
 	}
 	printf("[NULL]\n");
+	printf("SIZE OF EXEC_CODE IS [%x]\n", a.exec_code_size);
 	free_parse_exit(&a, 0, 0);
 	return (0);
 }
