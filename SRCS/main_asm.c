@@ -318,16 +318,75 @@ void		write_exec_code_size_to_bin(t_asm *a, int o)
 	free(str);
 }
 
+char		put_arg_type_to_str(t_token *t)
+{
+	int		i;
+	char	c;
+	int		code;
+
+	i = 0;
+	c = 0;
+	while (i < op_tab[t->instr - 1].n_args)
+	{
+		if (define_arg_type(t, i) == REGISTER)
+			code = REG_CODE;
+		else if (define_arg_type(t, i) == DIRECT || define_arg_type(t, i) == DIRECT_LABEL)
+			code = DIR_CODE;
+		else if (define_arg_type(t, i) == INDIRECT)
+			code = IND_CODE;
+		c |= code << (6 - 2 * i);
+		i++;
+	}
+	return (c);
+}
+
+char		*put_dir_arg(t_asm *a, t_token *t, char *str, int *i)
+{		
+
+	return (str);
+}
+
+char		*put_ind_arg(t_asm *a, t_token *t, char *str, int *i)
+{
+
+	return (str);
+}
+
+char		*put_dir_label_arg(t_asm *a, t_token *t, char *str, int *i)
+{
+
+	return (str);
+}
+
 void		write_instr_to_bin(t_asm *a, t_token *t, int o)
 {
 	char	*str;
+	int		i;
+	int		ia;
 
+	i = 0;
+	ia = 0;
 	str = ft_strnew(size_of_args(t) + 1);
-	str[0] = op_tab[t->instr - 1].op_num;
-	write(o, str, size_of_args(t) + 1);
+	str[i] = op_tab[t->instr - 1].op_num;
+	i++;
 	if (op_tab[t->instr - 1].code_arg_type)
-		str[1] = put_arg_type_to_str(); // TODO: МБ ЗДЕСЬ БУДЕТ ЛУЧШЕ ИДТИ ПО УКАЗАТЕЛЮ, 
-		// А НЕ ПО ИНДЕКСУ
+	{
+		str[i] = put_arg_type_to_str(t);
+		i++;
+	}
+	while (i < size_of_args(t) + 1)
+	{
+		if (define_arg_type(t, ia) == REGISTER)
+			str[i] = ft_atoi(t->args[ia] + 1);
+		else if (define_arg_type(t, ia) == DIRECT)
+			str = put_dir_arg(a, t, str, &i);
+		else if (define_arg_type(t, ia) == DIRECT_LABEL)
+			str = put_dir_label_arg(a, t, str, &i);
+		else if (define_arg_type(t, ia) == INDIRECT)
+			str = put_ind_arg(a, t, str, &i);
+		i++; // FIXME: НА САМОМ ДЕЛЕ ЗДЕСЬ НЕ НУЖНО I++, ЭТО ЧТОБЫ НЕ ВХОДИЛ В ИНФ ЦИКЛ
+	}
+	write(o, str, size_of_args(t) + 1);
 }
 
 void		write_to_exec(t_asm *a)
