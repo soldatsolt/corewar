@@ -96,7 +96,7 @@ int			if_its_instr(char *str)
 	len = (int)ft_strlen(str);
 	while (i >= 0)
 	{
-		if (len >= (int)ft_strlen(op_tab[i].name))
+		if (len >= (int)ft_strlen(op_tab[i].name)) // FIXME: ЗДЕСЬ МОЖНО ВОТКНУТЬ ВСЁ В ОДИН ИФ)))))))))
 		{
 			if (!ft_strncmp(str, op_tab[i].name, (int)ft_strlen(op_tab[i].name)))
 			{
@@ -318,7 +318,7 @@ void		write_exec_code_size_to_bin(t_asm *a, int o)
 	free(str);
 }
 
-char		put_arg_type_to_str(t_token *t)
+char		put_args_type_to_str(t_token *t)
 {
 	int		i;
 	char	c;
@@ -343,18 +343,92 @@ char		put_arg_type_to_str(t_token *t)
 char		*put_dir_arg(t_asm *a, t_token *t, char *str, int *i)
 {		
 
+	*i += g_dir_size[t->instr];
 	return (str);
 }
 
 char		*put_ind_arg(t_asm *a, t_token *t, char *str, int *i)
 {
 
+	*i += 2;
 	return (str);
 }
 
+/*
+**	put_ind_arg   
+**	ОН НАЧИНАЕТ ИСКАТЬ МЕТКУ ВВЕРХ, А НЕ ВНИЗ((
+**	TODO: Из этой ф-ии нужно сделать выход из всей
+**	проги на случай, если нужной метки не будет
+*/
+
 char		*put_dir_label_arg(t_asm *a, t_token *t, char *str, int *i)
 {
+	t_token	*tmp_label;
+	t_token	*tmp_instr;
+	t_token	*tmp;
+	int		diff;
 
+	diff = 0;
+	tmp_label = NULL;
+	tmp_instr = NULL;
+	tmp = a->tokens;
+
+
+	while (tmp)
+	{
+		if (tmp->type == LABEL)
+		{
+			if (!(ft_strcmp(tmp->label, a->current_label))) // Имя метки совпадает с нужным нам
+			{
+				if (!tmp_instr) // Нужной инструкции ещё не было
+				{
+					printf("Found new label! (DIFF IS 0 NOW)\n");
+					diff = 0;
+					tmp_label = tmp;
+				}
+				else if (!tmp_label) // Нужная инструкция уже пройдена и такой метки не было
+				{
+					break ;
+				}
+				else // Нужная инструкция уже пройдена и такая метка была
+				{
+					printf("OOOPSSS DIR_LABEL\n");
+				}
+				printf("FOUND LABEL\n");
+			}
+		}
+		if (tmp->type == INSTRUCTION)
+		{
+			if (tmp == t)
+			{
+				tmp_instr = tmp;
+				if (tmp_label) // нужная метка была, тогда просто выходим c -знаком
+				{
+					diff = -diff;
+					break ;
+				}
+				else // Идём дальше в поисках нужной метки
+				{
+
+				}
+				printf("FOUND INSTR\n");
+			}
+		}
+		if (tmp_label && tmp->type == INSTRUCTION)
+		{
+			printf("adding [%s]\n", op_tab[tmp->instr - 1].name);
+			diff += size_of_args(tmp) + 1;
+			printf("NOW DIFF IS [%d]\n", diff);
+		}
+		if (tmp_label && tmp_instr)
+		{
+			printf("ALL HERE\n");
+			break ;
+		}
+		tmp = tmp->next;
+	}
+	printf("FINAL DIFF IS [%d]\n", diff);
+	*i += g_dir_size[t->instr];
 	return (str);
 }
 
@@ -371,22 +445,30 @@ void		write_instr_to_bin(t_asm *a, t_token *t, int o)
 	i++;
 	if (op_tab[t->instr - 1].code_arg_type)
 	{
-		str[i] = put_arg_type_to_str(t);
+		str[i] = put_args_type_to_str(t);
 		i++;
 	}
-	while (i < size_of_args(t) + 1)
+	while (i < size_of_args(t) + 1) // точно ли +1?? ведь код самой операции уже зашифрован
 	{
 		if (define_arg_type(t, ia) == REGISTER)
+		{
 			str[i] = ft_atoi(t->args[ia] + 1);
+			i++;
+		}
 		else if (define_arg_type(t, ia) == DIRECT)
 			str = put_dir_arg(a, t, str, &i);
 		else if (define_arg_type(t, ia) == DIRECT_LABEL)
+		{
+			a->current_label = (t->args[ia]) + 2;
 			str = put_dir_label_arg(a, t, str, &i);
+		}
 		else if (define_arg_type(t, ia) == INDIRECT)
 			str = put_ind_arg(a, t, str, &i);
-		i++; // FIXME: НА САМОМ ДЕЛЕ ЗДЕСЬ НЕ НУЖНО I++, ЭТО ЧТОБЫ НЕ ВХОДИЛ В ИНФ ЦИКЛ
+		// FIXME: НА САМОМ ДЕЛЕ ЗДЕСЬ НЕ НУЖНО I++, ЭТО ЧТОБЫ НЕ ВХОДИЛ В ИНФ ЦИКЛ
+		ia++;
 	}
 	write(o, str, size_of_args(t) + 1);
+	free(str);
 }
 
 void		write_to_exec(t_asm *a)
@@ -399,9 +481,10 @@ void		write_to_exec(t_asm *a)
 	write(o, g_magic_header, 4);
 	write(o, a->name, PROG_NAME_LENGTH);
 	write(o, g_null, 4);
-	// TODO: Здесь должна быть часть EXEC кода чампиона. Где взять - хз((((
+	// TODO: Здесь должна быть часть EXEC кода чeмпиона. Где взять - хз((((
 	write_exec_code_size_to_bin(a, o);
 	write(o, a->comment, COMMENT_LENGTH);
+	write(o, g_null, 4);
 	while (tmp)
 	{
 		if (tmp->type == INSTRUCTION)
