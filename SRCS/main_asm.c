@@ -367,7 +367,9 @@ char		*put_dir_label_arg(t_asm *a, t_token *t, char *str, int *i)
 	t_token	*tmp_instr;
 	t_token	*tmp;
 	int		diff;
+	int		ii;
 
+	ii = 0;
 	diff = 0;
 	tmp_label = NULL;
 	tmp_instr = NULL;
@@ -425,9 +427,78 @@ char		*put_dir_label_arg(t_asm *a, t_token *t, char *str, int *i)
 			printf("ALL HERE\n");
 			break ;
 		}
+		if (tmp_instr && tmp->type == INSTRUCTION)
+		{
+			printf("adding [%s]\n", op_tab[tmp->instr - 1].name);
+			diff += size_of_args(tmp) + 1;
+			printf("NOW DIFF IS [%d]\n", diff);
+		}
 		tmp = tmp->next;
 	}
 	printf("FINAL DIFF IS [%d]\n", diff);
+	if (diff > 0)
+	{
+		if (g_dir_size[t->instr] == 4)
+		{
+			while (ii < 4)
+			{
+				if (ii == 0)
+					str[*i + ii] = diff / 0x1000000;
+				else if (ii == 1)
+					str[*i + ii] = diff / 0x10000;
+				else if (ii == 2)
+					str[*i + ii] = diff / 0x100;
+				else if (ii == 3)
+					str[*i + ii] = diff % 0x100;
+				ii++;
+			}
+		}
+		else
+		{
+			while (ii < 2)
+			{
+				if (ii == 0)
+					str[*i + ii] = diff / 0x100;
+				else if (ii == 1)
+					str[*i + ii] = diff % 0x100;
+				ii++;
+			}
+		}
+	}
+	else // if diff < 0
+	{
+		diff = -diff;
+		diff = ~diff;
+		diff++;
+		// diff &= 0xFFFFFFFF;
+		if (g_dir_size[t->instr] == 4)
+		{
+			while (ii < 4)
+			{
+				if (ii == 0)
+					str[*i + ii] = diff / 0x1000000;
+				else if (ii == 1)
+					str[*i + ii] = diff / 0x10000;
+				else if (ii == 2)
+					str[*i + ii] = diff / 0x100;
+				else if (ii == 3)
+					str[*i + ii] = diff % 0x100;
+				ii++;
+			}
+		}
+		else
+		{
+			diff &= 0xFFFF;
+			while (ii < 2)
+			{
+				if (ii == 0)
+					str[*i + ii] = diff / 0x100;
+				else if (ii == 1)
+					str[*i + ii] = diff % 0x100;
+				ii++;
+			}
+		}
+	}
 	*i += g_dir_size[t->instr];
 	return (str);
 }
