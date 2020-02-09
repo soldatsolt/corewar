@@ -80,7 +80,7 @@ t_type			define_arg_type(t_token *t, int n)
 		return (DIRECT);
 	else if (str[0] == 'r')
 		return (REGISTER);
-	else if (str[0] >= '0' && str[0] <= '9')
+	else if ((str[0] >= '0' && str[0] <= '9') || str[0] == '-')
 		return (INDIRECT);
 	else
 		return (ERR);
@@ -149,6 +149,28 @@ int			if_l_chars(char *str, t_asm *a)
 	a->current_label = ft_strdup(str);
 	str[c] = LABEL_CHAR;
 	return (1);
+}
+
+char		*make_str_withnocomment(char *str)
+{
+	int		alt;
+	int		def;
+
+	def = ft_strchr_n(str, COMMENT_CHAR);
+	alt = ft_strchr_n(str, ALT_COMMENT_CHAR);
+	if (def >=0 && alt >= 0)
+	{
+		str[(alt < def ? alt : def)] = '\0';
+	}
+	else if (def >= 0)
+	{
+		str[def] = '\0';
+	}
+	else if (alt >= 0)
+	{
+		str[alt] = '\0';
+	}
+	return (str);
 }
 
 char		*next_arg(char *str)
@@ -255,10 +277,14 @@ void		parse_this_line(int fd, char *str, t_asm *a)
 	else if (!ft_strncmp(str, COMMENT_CMD_STRING, 8))
 		insert_comment_to_asm(fd, str, a);
 	if (str[0] && !if_its_instr(str) && if_l_chars(str, a))
+	{
+		str = make_str_withnocomment(str);
 		label_to_tokens(a, str);
+	}
 	else if (if_its_instr(str))
 	{
 		a->current_instruction = if_its_instr(str);
+		str = make_str_withnocomment(str);
 		instr_to_tokens(a, str);
 		parse_args_instr(a, str, &str);
 	}
@@ -340,16 +366,152 @@ char		put_args_type_to_str(t_token *t)
 	return (c);
 }
 
-char		*put_dir_arg(t_asm *a, t_token *t, char *str, int *i)
+char		*put_dir_arg(int ia, t_token *t, char *str, int *i)
 {		
+	int		diff;
+	int		ii;
 
+	ii = 0;
+	diff = ft_atoi(t->args[ia] + 1);
+	printf("DIR = %d\n", diff);
+	if (diff > 0)
+	{
+		if (g_dir_size[t->instr] == 4)
+		{
+			while (ii < 4)
+			{
+				if (ii == 0)
+					str[*i + ii] = diff / 0x1000000;
+				else if (ii == 1)
+					str[*i + ii] = diff / 0x10000;
+				else if (ii == 2)
+					str[*i + ii] = diff / 0x100;
+				else if (ii == 3)
+					str[*i + ii] = diff % 0x100;
+				ii++;
+			}
+		}
+		else
+		{
+			while (ii < 2)
+			{
+				if (ii == 0)
+					str[*i + ii] = diff / 0x100;
+				else if (ii == 1)
+					str[*i + ii] = diff % 0x100;
+				ii++;
+			}
+		}
+	}
+	else // if diff < 0
+	{
+		diff = -diff;
+		diff = ~diff;
+		diff++;
+		// diff &= 0xFFFFFFFF;
+		if (g_dir_size[t->instr] == 4)
+		{
+			while (ii < 4)
+			{
+				if (ii == 0)
+					str[*i + ii] = diff / 0x1000000;
+				else if (ii == 1)
+					str[*i + ii] = diff / 0x10000;
+				else if (ii == 2)
+					str[*i + ii] = diff / 0x100;
+				else if (ii == 3)
+					str[*i + ii] = diff % 0x100;
+				ii++;
+			}
+		}
+		else
+		{
+			diff &= 0xFFFF;
+			while (ii < 2)
+			{
+				if (ii == 0)
+					str[*i + ii] = diff / 0x100;
+				else if (ii == 1)
+					str[*i + ii] = diff % 0x100;
+				ii++;
+			}
+		}
+	}
 	*i += g_dir_size[t->instr];
 	return (str);
 }
 
-char		*put_ind_arg(t_asm *a, t_token *t, char *str, int *i)
+char		*put_ind_arg(int ia, t_token *t, char *str, int *i)
 {
+		int		diff;
+	int		ii;
 
+	ii = 0;
+	diff = ft_atoi(t->args[ia]);
+	printf("IND = %d\n", diff);
+	if (diff > 0)
+	{
+		if (0)
+		{
+			while (ii < 4)
+			{
+				if (ii == 0)
+					str[*i + ii] = diff / 0x1000000;
+				else if (ii == 1)
+					str[*i + ii] = diff / 0x10000;
+				else if (ii == 2)
+					str[*i + ii] = diff / 0x100;
+				else if (ii == 3)
+					str[*i + ii] = diff % 0x100;
+				ii++;
+			}
+		}
+		else
+		{
+			while (ii < 2)
+			{
+				if (ii == 0)
+					str[*i + ii] = diff / 0x100;
+				else if (ii == 1)
+					str[*i + ii] = diff % 0x100;
+				ii++;
+			}
+		}
+	}
+	else // if diff < 0
+	{
+		diff = -diff;
+		diff = ~diff;
+		diff++;
+		// diff &= 0xFFFFFFFF;
+		if (0)
+		{
+			while (ii < 4)
+			{
+				if (ii == 0)
+					str[*i + ii] = diff / 0x1000000;
+				else if (ii == 1)
+					str[*i + ii] = diff / 0x10000;
+				else if (ii == 2)
+					str[*i + ii] = diff / 0x100;
+				else if (ii == 3)
+					str[*i + ii] = diff % 0x100;
+				ii++;
+			}
+		}
+		else
+		{
+			diff &= 0xFFFF;
+			while (ii < 2)
+			{
+				if (ii == 0)
+					str[*i + ii] = diff / 0x100;
+				else if (ii == 1)
+					str[*i + ii] = diff % 0x100;
+				ii++;
+			}
+		}
+	}
 	*i += 2;
 	return (str);
 }
@@ -384,7 +546,7 @@ char		*put_dir_label_arg(t_asm *a, t_token *t, char *str, int *i)
 			{
 				if (!tmp_instr) // Нужной инструкции ещё не было
 				{
-					printf("Found new label! (DIFF IS 0 NOW)\n");
+					// printf("Found new label! (DIFF IS 0 NOW)\n");
 					diff = 0;
 					tmp_label = tmp;
 				}
@@ -394,9 +556,9 @@ char		*put_dir_label_arg(t_asm *a, t_token *t, char *str, int *i)
 				}
 				else // Нужная инструкция уже пройдена и такая метка была
 				{
-					printf("OOOPSSS DIR_LABEL\n");
+					// printf("OOOPSSS DIR_LABEL\n");
 				}
-				printf("FOUND LABEL\n");
+				// printf("FOUND LABEL\n");
 			}
 		}
 		if (tmp->type == INSTRUCTION)
@@ -413,29 +575,29 @@ char		*put_dir_label_arg(t_asm *a, t_token *t, char *str, int *i)
 				{
 
 				}
-				printf("FOUND INSTR\n");
+				// printf("FOUND INSTR\n");
 			}
 		}
 		if (tmp_label && tmp->type == INSTRUCTION)
 		{
-			printf("adding [%s]\n", op_tab[tmp->instr - 1].name);
+			// printf("adding [%s]\n", op_tab[tmp->instr - 1].name);
 			diff += size_of_args(tmp) + 1;
-			printf("NOW DIFF IS [%d]\n", diff);
+			// printf("NOW DIFF IS [%d]\n", diff);
 		}
 		if (tmp_label && tmp_instr)
 		{
-			printf("ALL HERE\n");
+			// printf("ALL HERE\n");
 			break ;
 		}
 		if (tmp_instr && tmp->type == INSTRUCTION)
 		{
-			printf("adding [%s]\n", op_tab[tmp->instr - 1].name);
+			// printf("adding [%s]\n", op_tab[tmp->instr - 1].name);
 			diff += size_of_args(tmp) + 1;
-			printf("NOW DIFF IS [%d]\n", diff);
+			// printf("NOW DIFF IS [%d]\n", diff);
 		}
 		tmp = tmp->next;
 	}
-	printf("FINAL DIFF IS [%d]\n", diff);
+	// printf("FINAL DIFF IS [%d]\n", diff);
 	if (diff > 0)
 	{
 		if (g_dir_size[t->instr] == 4)
@@ -527,14 +689,14 @@ void		write_instr_to_bin(t_asm *a, t_token *t, int o)
 			i++;
 		}
 		else if (define_arg_type(t, ia) == DIRECT)
-			str = put_dir_arg(a, t, str, &i);
+			str = put_dir_arg(ia, t, str, &i);
 		else if (define_arg_type(t, ia) == DIRECT_LABEL)
 		{
 			a->current_label = (t->args[ia]) + 2;
 			str = put_dir_label_arg(a, t, str, &i);
 		}
 		else if (define_arg_type(t, ia) == INDIRECT)
-			str = put_ind_arg(a, t, str, &i);
+			str = put_ind_arg(ia, t, str, &i);
 		// FIXME: НА САМОМ ДЕЛЕ ЗДЕСЬ НЕ НУЖНО I++, ЭТО ЧТОБЫ НЕ ВХОДИЛ В ИНФ ЦИКЛ
 		ia++;
 	}
