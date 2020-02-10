@@ -1,66 +1,6 @@
 .name "King Sombra"
 .comment "Crystal empire is mine!"
 
-init:
-rest:
-fork %:go
-live %0
-fork %:go2
-prelive:
-ld %251658255, r2
-ld %1, r12
-ld %40, r11
-st r1, 11
-st r16, -4
-shield:
-live %0
-st r16, -300
-st r2, -301
-st r2, -302
-sub r11, r12, r11
-zjmp %:fork
-ld %0, r16
-zjmp %:shield
-
-go:
-ld %0, r16
-zjmp %:assaut1
-
-go2:
-ld %0, r16
-zjmp %:assaut2
-
-fork:
-ldi %:shield, %1, r13
-ld %0, r16
-st r13, 6
-forkcycle:
-live %0
-fork %:forkcycle
-
-eraser:
-st r13, 6
-live %0
-fork %:part2
-
-part1:
-ld %190056971, r10 # sti r10,r11
-ld %135004416, r7 # r8,r12 live
-ld %273, r8
-ld %270, r11
-ld %0, r12
-fork %:start1
-zjmp %:start2
-
-part2:
-ld %202068999, r10 # r12 sti r7
-st r13, r7
-ld %276, r8
-ld %274, r11
-ld %0, r12
-fork %:start1
-zjmp %:start2
-
 start1:
 zjmp %3
 sti r10, r11, r12

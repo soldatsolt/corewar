@@ -100,7 +100,7 @@ int			if_its_instr(char *str)
 		{
 			if (!ft_strncmp(str, op_tab[i].name, (int)ft_strlen(op_tab[i].name)))
 			{
-				if (str[(int)ft_strlen(op_tab[i].name)] != LABEL_CHAR)
+				if (str[(int)ft_strlen(op_tab[i].name)] != LABEL_CHAR && !ft_strchr(LABEL_CHARS, str[(int)ft_strlen(op_tab[i].name)]))
 				{
 					free(str);
 					return (i + 1);
