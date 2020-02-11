@@ -330,13 +330,13 @@ void		write_exec_code_size_to_bin(t_asm *a, int o)
 	while (i < 4)
 	{
 		if (i == 0)
-			tobin[i] = a->exec_code_size / 0x1000000;
+			tobin[i] = ((a->exec_code_size & 0xFF000000) >> 6 * 4);
 		else if (i == 1)
-			tobin[i] = a->exec_code_size / 0x10000;
+			tobin[i] = ((a->exec_code_size & 0xFF0000) >> 4 * 4);
 		else if (i == 2)
-			tobin[i] = a->exec_code_size / 0x100;
+			tobin[i] = ((a->exec_code_size & 0xFF00) >> 2 * 4);
 		else if (i == 3)
-			tobin[i] = a->exec_code_size % 0x100;
+			tobin[i] = (a->exec_code_size & 0xFF);
 		i++;
 	}
 	write(o, tobin, 4);
@@ -381,13 +381,13 @@ char		*put_dir_arg(int ia, t_token *t, char *str, int *i)
 			while (ii < 4)
 			{
 				if (ii == 0)
-					str[*i + ii] = diff / 0x1000000;
+					str[*i + ii] = ((diff & 0xFF000000) >> 6 * 4);
 				else if (ii == 1)
-					str[*i + ii] = diff / 0x10000;
+					str[*i + ii] = ((diff & 0xFF0000) >> 4 * 4);
 				else if (ii == 2)
-					str[*i + ii] = diff / 0x100;
+					str[*i + ii] = ((diff & 0xFF00) >> 2 * 4);
 				else if (ii == 3)
-					str[*i + ii] = diff % 0x100;
+					str[*i + ii] = (diff & 0xFF);
 				ii++;
 			}
 		}
@@ -396,9 +396,9 @@ char		*put_dir_arg(int ia, t_token *t, char *str, int *i)
 			while (ii < 2)
 			{
 				if (ii == 0)
-					str[*i + ii] = diff / 0x100;
+					str[*i + ii] = ((diff & 0xFF00) >> 2 * 4);
 				else if (ii == 1)
-					str[*i + ii] = diff % 0x100;
+					str[*i + ii] = (diff & 0xFF);
 				ii++;
 			}
 		}
@@ -414,13 +414,13 @@ char		*put_dir_arg(int ia, t_token *t, char *str, int *i)
 			while (ii < 4)
 			{
 				if (ii == 0)
-					str[*i + ii] = diff / 0x1000000;
+					str[*i + ii] = ((diff & 0xFF000000) >> 6 * 4);
 				else if (ii == 1)
-					str[*i + ii] = diff / 0x10000;
+					str[*i + ii] = ((diff & 0xFF0000) >> 4 * 4);
 				else if (ii == 2)
-					str[*i + ii] = diff / 0x100;
+					str[*i + ii] = ((diff & 0xFF00) >> 2 * 4);
 				else if (ii == 3)
-					str[*i + ii] = diff % 0x100;
+					str[*i + ii] = (diff & 0xFF);
 				ii++;
 			}
 		}
@@ -430,9 +430,9 @@ char		*put_dir_arg(int ia, t_token *t, char *str, int *i)
 			while (ii < 2)
 			{
 				if (ii == 0)
-					str[*i + ii] = diff / 0x100;
+					str[*i + ii] = ((diff & 0xFF00) >> 2 * 4);
 				else if (ii == 1)
-					str[*i + ii] = diff % 0x100;
+					str[*i + ii] = (diff & 0xFF);
 				ii++;
 			}
 		}
@@ -456,13 +456,13 @@ char		*put_ind_arg(int ia, t_token *t, char *str, int *i)
 			while (ii < 4)
 			{
 				if (ii == 0)
-					str[*i + ii] = diff / 0x1000000;
+					str[*i + ii] = ((diff & 0xFF000000) >> 6 * 4);
 				else if (ii == 1)
-					str[*i + ii] = diff / 0x10000;
+					str[*i + ii] = ((diff & 0xFF0000) >> 4 * 4);
 				else if (ii == 2)
-					str[*i + ii] = diff / 0x100;
+					str[*i + ii] = ((diff & 0xFF00) >> 2 * 4);
 				else if (ii == 3)
-					str[*i + ii] = diff % 0x100;
+					str[*i + ii] = (diff & 0xFF);
 				ii++;
 			}
 		}
@@ -471,9 +471,9 @@ char		*put_ind_arg(int ia, t_token *t, char *str, int *i)
 			while (ii < 2)
 			{
 				if (ii == 0)
-					str[*i + ii] = diff / 0x100;
+					str[*i + ii] = ((diff & 0xFF00) >> 2 * 4);
 				else if (ii == 1)
-					str[*i + ii] = diff % 0x100;
+					str[*i + ii] = (diff & 0xFF);
 				ii++;
 			}
 		}
@@ -489,13 +489,13 @@ char		*put_ind_arg(int ia, t_token *t, char *str, int *i)
 			while (ii < 4)
 			{
 				if (ii == 0)
-					str[*i + ii] = diff / 0x1000000;
+					str[*i + ii] = ((diff & 0xFF000000) >> 6 * 4);
 				else if (ii == 1)
-					str[*i + ii] = diff / 0x10000;
+					str[*i + ii] = ((diff & 0xFF0000) >> 4 * 4);
 				else if (ii == 2)
-					str[*i + ii] = diff / 0x100;
+					str[*i + ii] = ((diff & 0xFF00) >> 2 * 4);
 				else if (ii == 3)
-					str[*i + ii] = diff % 0x100;
+					str[*i + ii] = (diff & 0xFF);
 				ii++;
 			}
 		}
@@ -505,9 +505,9 @@ char		*put_ind_arg(int ia, t_token *t, char *str, int *i)
 			while (ii < 2)
 			{
 				if (ii == 0)
-					str[*i + ii] = diff / 0x100;
+					str[*i + ii] = ((diff & 0xFF00) >> 2 * 4);
 				else if (ii == 1)
-					str[*i + ii] = diff % 0x100;
+					str[*i + ii] = (diff & 0xFF);
 				ii++;
 			}
 		}
