@@ -8,6 +8,7 @@ TRACES="./traces"
 TEST_NUMBER=1
 rm -rf $TRACES
 mkdir -p $TRACES
+ERR_COUNT=0
 
 for file in $FILES
 do
@@ -23,6 +24,7 @@ do
 			echo "\x1b[32;1m >>>>    IT IS OKAY !!!!!  \x1b[0m"
 		else
 			echo "\x1b[31;1m >>>>    EXECUTE ERROR !!!!!  \x1b[0m"
+			((ERR_COUNT += 1))
 			hexdump -vC MYFILE > $TRACES/${TEST_NUMBER}_my.hd
 			hexdump -vC $CORFILE > $TRACES/${TEST_NUMBER}_or.hd
 			diff -U3 $TRACES/${TEST_NUMBER}_my.hd $TRACES/${TEST_NUMBER}_or.hd > $TRACES/${TEST_NUMBER}.trace
@@ -32,6 +34,7 @@ do
 		if [ -f MYFILE ]
 		then
 			echo "\x1b[31;1m >>>>    VALID ERROR !!!!! \x1b[0m"
+			((ERR_COUNT += 1))
 		else
 			echo "\x1b[32;1m >>>>    IT IS OKAY !!!!! \x1b[0m"
 		fi
@@ -40,3 +43,4 @@ do
 	((TEST_NUMBER += 1))
 	echo
 done
+echo "$ERR_COUNT/184 WRONG"

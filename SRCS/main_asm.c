@@ -78,10 +78,12 @@ t_type			define_arg_type(t_token *t, int n)
 		return (DIRECT_LABEL);
 	else if (str[0] == '%')
 		return (DIRECT);
-	else if (str[0] == 'r')
+	else if (str[0] == 'r' && str[1] && str[1] >= '0' && str[1] <= '9')
 		return (REGISTER);
 	else if ((str[0] >= '0' && str[0] <= '9') || str[0] == '-')
 		return (INDIRECT);
+	else if (str[0] == ':' && str[1] && ft_strchr(LABEL_CHARS, str[1]))
+		return (INDIRECT_LABEL);
 	else
 		return (ERR);
 }
@@ -211,16 +213,18 @@ int			size_of_args(t_token *t) // для первого live : instr = 1, arg = 
 {
 	int		i;
 	int		size;
+	t_type	type;
 
 	size = 0;
 	i = 0;
 	while (i < op_tab[t->instr - 1].n_args)
 	{
-		if (define_arg_type(t, i) == REGISTER)
+		type = define_arg_type(t, i);
+		if (type == REGISTER)
 			size++;
-		else if (define_arg_type(t, i) == INDIRECT)
+		else if (type == INDIRECT || type == INDIRECT_LABEL)
 			size += 2;
-		else if (define_arg_type(t, i) == DIRECT || define_arg_type(t, i) == DIRECT_LABEL)
+		else if (type == DIRECT || type == DIRECT_LABEL)
 			size += g_dir_size[t->instr];
 		i++;
 	}
@@ -252,7 +256,7 @@ void		parse_args_instr(t_asm *a, char *str, char **to_free)
 	{
 		last_arg = next_arg(s);
 		prep_for_next_arg(a, &s, op_tab[a->current_instruction - 1].n_args - i, to_free);
-		printf("ARG = %s\n", last_arg);
+		printf("ARG = %s|\n", last_arg);
 		curr_instr->args[i] = last_arg;
 		i++;
 	}
@@ -358,7 +362,7 @@ char		put_args_type_to_str(t_token *t)
 			code = REG_CODE;
 		else if (define_arg_type(t, i) == DIRECT || define_arg_type(t, i) == DIRECT_LABEL)
 			code = DIR_CODE;
-		else if (define_arg_type(t, i) == INDIRECT)
+		else if (define_arg_type(t, i) == INDIRECT || define_arg_type(t, i) == INDIRECT_LABEL)
 			code = IND_CODE;
 		c |= code << (6 - 2 * i);
 		i++;
@@ -552,6 +556,7 @@ char		*put_dir_label_arg(t_asm *a, t_token *t, char *str, int *i)
 				}
 				else if (!tmp_label) // Нужная инструкция уже пройдена и такой метки не было
 				{
+					tmp_label = tmp;
 					break ;
 				}
 				else // Нужная инструкция уже пройдена и такая метка была
@@ -597,6 +602,11 @@ char		*put_dir_label_arg(t_asm *a, t_token *t, char *str, int *i)
 		}
 		tmp = tmp->next;
 	}
+	if (!tmp_label)
+	{
+		printf("NO SUCH LABEL LABEL!!!! [%s]\n", a->current_label); //TODO: FIXME: СДЕЛАТЬ ЗДЕСЬ АДЕКВАТНЫЙ ВЫХОД!!!!
+		exit(0);
+	}
 	// printf("FINAL DIFF IS [%d]\n", diff);
 	if (diff > 0)
 	{
@@ -605,13 +615,13 @@ char		*put_dir_label_arg(t_asm *a, t_token *t, char *str, int *i)
 			while (ii < 4)
 			{
 				if (ii == 0)
-					str[*i + ii] = diff / 0x1000000;
+					str[*i + ii] = ((diff & 0xFF000000) >> 6 * 4);
 				else if (ii == 1)
-					str[*i + ii] = diff / 0x10000;
+					str[*i + ii] = ((diff & 0xFF0000) >> 4 * 4);
 				else if (ii == 2)
-					str[*i + ii] = diff / 0x100;
+					str[*i + ii] = ((diff & 0xFF00) >> 2 * 4);
 				else if (ii == 3)
-					str[*i + ii] = diff % 0x100;
+					str[*i + ii] = (diff & 0xFF);
 				ii++;
 			}
 		}
@@ -620,9 +630,9 @@ char		*put_dir_label_arg(t_asm *a, t_token *t, char *str, int *i)
 			while (ii < 2)
 			{
 				if (ii == 0)
-					str[*i + ii] = diff / 0x100;
+					str[*i + ii] = ((diff & 0xFF00) >> 2 * 4);
 				else if (ii == 1)
-					str[*i + ii] = diff % 0x100;
+					str[*i + ii] = (diff & 0xFF);
 				ii++;
 			}
 		}
@@ -638,13 +648,13 @@ char		*put_dir_label_arg(t_asm *a, t_token *t, char *str, int *i)
 			while (ii < 4)
 			{
 				if (ii == 0)
-					str[*i + ii] = diff / 0x1000000;
+					str[*i + ii] = ((diff & 0xFF000000) >> 6 * 4);
 				else if (ii == 1)
-					str[*i + ii] = diff / 0x10000;
+					str[*i + ii] = ((diff & 0xFF0000) >> 4 * 4);
 				else if (ii == 2)
-					str[*i + ii] = diff / 0x100;
+					str[*i + ii] = ((diff & 0xFF00) >> 2 * 4);
 				else if (ii == 3)
-					str[*i + ii] = diff % 0x100;
+					str[*i + ii] = (diff & 0xFF);
 				ii++;
 			}
 		}
@@ -654,14 +664,162 @@ char		*put_dir_label_arg(t_asm *a, t_token *t, char *str, int *i)
 			while (ii < 2)
 			{
 				if (ii == 0)
-					str[*i + ii] = diff / 0x100;
+					str[*i + ii] = ((diff & 0xFF00) >> 2 * 4);
 				else if (ii == 1)
-					str[*i + ii] = diff % 0x100;
+					str[*i + ii] = (diff & 0xFF);
 				ii++;
 			}
 		}
 	}
 	*i += g_dir_size[t->instr];
+	return (str);
+}
+
+char		*put_ind_label_arg(t_asm *a, t_token *t, char *str, int *i)
+{
+	t_token	*tmp_label;
+	t_token	*tmp_instr;
+	t_token	*tmp;
+	int		diff;
+	int		ii;
+
+	ii = 0;
+	diff = 0;
+	tmp_label = NULL;
+	tmp_instr = NULL;
+	tmp = a->tokens;
+
+
+	while (tmp)
+	{
+		if (tmp->type == LABEL)
+		{
+			if (!(ft_strcmp(tmp->label, a->current_label))) // Имя метки совпадает с нужным нам
+			{
+				if (!tmp_instr) // Нужной инструкции ещё не было
+				{
+					// printf("Found new label! (DIFF IS 0 NOW)\n");
+					diff = 0;
+					tmp_label = tmp;
+				}
+				else if (!tmp_label) // Нужная инструкция уже пройдена и такой метки не было
+				{
+					tmp_label = tmp;
+					break ;
+				}
+				else // Нужная инструкция уже пройдена и такая метка была
+				{
+					// printf("OOOPSSS DIR_LABEL\n");
+				}
+				// printf("FOUND LABEL\n");
+			}
+		}
+		if (tmp->type == INSTRUCTION)
+		{
+			if (tmp == t)
+			{
+				tmp_instr = tmp;
+				if (tmp_label) // нужная метка была, тогда просто выходим c -знаком
+				{
+					diff = -diff;
+					break ;
+				}
+				else // Идём дальше в поисках нужной метки
+				{
+
+				}
+				// printf("FOUND INSTR\n");
+			}
+		}
+		if (tmp_label && tmp->type == INSTRUCTION)
+		{
+			// printf("adding [%s]\n", op_tab[tmp->instr - 1].name);
+			diff += size_of_args(tmp) + 1;
+			// printf("NOW DIFF IS [%d]\n", diff);
+		}
+		if (tmp_label && tmp_instr)
+		{
+			// printf("ALL HERE\n");
+			break ;
+		}
+		if (tmp_instr && tmp->type == INSTRUCTION)
+		{
+			// printf("adding [%s]\n", op_tab[tmp->instr - 1].name);
+			diff += size_of_args(tmp) + 1;
+			// printf("NOW DIFF IS [%d]\n", diff);
+		}
+		tmp = tmp->next;
+	}
+	if (!tmp_label)
+	{
+		printf("NO SUCH LABEL LABEL!!!! [%s]\n", a->current_label); //TODO: FIXME: СДЕЛАТЬ ЗДЕСЬ АДЕКВАТНЫЙ ВЫХОД!!!!
+		exit(0);
+	}
+	// printf("FINAL DIFF IS [%d]\n", diff);
+	if (diff > 0)
+	{
+		if (0)
+		{
+			while (ii < 4)
+			{
+				if (ii == 0)
+					str[*i + ii] = ((diff & 0xFF000000) >> 6 * 4);
+				else if (ii == 1)
+					str[*i + ii] = ((diff & 0xFF0000) >> 4 * 4);
+				else if (ii == 2)
+					str[*i + ii] = ((diff & 0xFF00) >> 2 * 4);
+				else if (ii == 3)
+					str[*i + ii] = (diff & 0xFF);
+				ii++;
+			}
+		}
+		else
+		{
+			while (ii < 2)
+			{
+				if (ii == 0)
+					str[*i + ii] = ((diff & 0xFF00) >> 2 * 4);
+				else if (ii == 1)
+					str[*i + ii] = (diff & 0xFF);
+				ii++;
+			}
+		}
+	}
+	else // if diff < 0
+	{
+		diff = -diff;
+		diff = ~diff;
+		diff++;
+		// diff &= 0xFFFFFFFF;
+		if (0)
+		{
+			while (ii < 4)
+			{
+				if (ii == 0)
+					str[*i + ii] = ((diff & 0xFF000000) >> 6 * 4);
+				else if (ii == 1)
+					str[*i + ii] = ((diff & 0xFF0000) >> 4 * 4);
+				else if (ii == 2)
+					str[*i + ii] = ((diff & 0xFF00) >> 2 * 4);
+				else if (ii == 3)
+					str[*i + ii] = (diff & 0xFF);
+				ii++;
+			}
+		}
+		else
+		{
+			diff &= 0xFFFF;
+			while (ii < 2)
+			{
+				if (ii == 0)
+					str[*i + ii] = ((diff & 0xFF00) >> 2 * 4);
+				else if (ii == 1)
+					str[*i + ii] = (diff & 0xFF);
+				ii++;
+			}
+		}
+	}
+	*i += 2;
 	return (str);
 }
 
@@ -692,11 +850,18 @@ void		write_instr_to_bin(t_asm *a, t_token *t, int o)
 			str = put_dir_arg(ia, t, str, &i);
 		else if (define_arg_type(t, ia) == DIRECT_LABEL)
 		{
-			a->current_label = (t->args[ia]) + 2;
+			a->current_label = ft_strtrim((t->args[ia]) + 2);
 			str = put_dir_label_arg(a, t, str, &i);
+			free(a->current_label);
 		}
 		else if (define_arg_type(t, ia) == INDIRECT)
 			str = put_ind_arg(ia, t, str, &i);
+		else if (define_arg_type(t, ia) == INDIRECT_LABEL)
+		{
+			a->current_label = ft_strtrim((t->args[ia]) + 1);
+			str = put_ind_label_arg(a, t, str, &i);
+			free(a->current_label);
+		}
 		// FIXME: НА САМОМ ДЕЛЕ ЗДЕСЬ НЕ НУЖНО I++, ЭТО ЧТОБЫ НЕ ВХОДИЛ В ИНФ ЦИКЛ
 		ia++;
 	}
@@ -750,7 +915,12 @@ int			main(int argc, char **argv)
 		close(fd);
 		printf("NAME IS |%s|\nCOMM IS |%s|\n", a.name, a.comment);
 	}
-
+	if (!(a.f & F_NAME) || !(a.f & F_COMMENT))
+	{
+		printf("NO COMMENT OR NO NAME \n");
+		free_parse_exit(&a, 0, 0);
+		return (1);
+	}
 
 
 
