@@ -9,6 +9,8 @@ int			first_non_space_char(char *str)
 		return (-1);
 	while (str[i] && (str[i] == ' ' || str[i] == '\t'))
 		i++;
+	if (!str[i])
+		return (-1);
 	return (i);
 }
 

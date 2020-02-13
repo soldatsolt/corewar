@@ -137,6 +137,8 @@ int			if_l_chars(char *str, t_asm *a)
 	c = ft_strchr_n(str, LABEL_CHAR);
 	if (c < 0)
 		return (0);
+	if (ft_strchr(str + c, LABEL_CHAR))
+		return (0);
 	str[c] = 0;
 	l = (int)ft_strlen(str);
 	while (i < l)
@@ -265,6 +267,8 @@ void		parse_args_instr(t_asm *a, char *str, char **to_free)
 	else if (ft_strchr(last_arg, ALT_COMMENT_CHAR)) //TODO: СДЕЛАТЬ КАК-НИБУДЬ НОРМАЛЬНО
 		curr_instr->args[i - 1][ft_strchr_n(last_arg, ALT_COMMENT_CHAR)] = '\0';
 	a->exec_code_size += size_of_args(curr_instr);
+	if (first_non_space_char(str) != 1)
+		free_parse_exit(a, 1, to_free);
 	printf("---------------%s\n", s);
 }
 
@@ -280,15 +284,14 @@ void		parse_this_line(int fd, char *str, t_asm *a)
 		insert_name_to_asm(fd, str, a);
 	else if (!ft_strncmp(str, COMMENT_CMD_STRING, 8))
 		insert_comment_to_asm(fd, str, a);
+	str = make_str_withnocomment(str);
 	if (str[0] && !if_its_instr(str) && if_l_chars(str, a))
 	{
-		str = make_str_withnocomment(str);
 		label_to_tokens(a, str);
 	}
 	else if (if_its_instr(str))
 	{
 		a->current_instruction = if_its_instr(str);
-		str = make_str_withnocomment(str);
 		instr_to_tokens(a, str);
 		parse_args_instr(a, str, &str);
 	}
@@ -874,6 +877,8 @@ void		write_to_exec(t_asm *a)
 	int		o;
 	t_token	*tmp;
 
+	if (a->exec_code_size <= 0)
+		free_parse_exit(a, 2, 0);
 	tmp = a->tokens;
 	o = open("MYFILE", O_WRONLY | O_CREAT | O_TRUNC, 0777);
 	write(o, g_magic_header, 4);
