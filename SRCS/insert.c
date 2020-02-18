@@ -54,8 +54,6 @@ void		insert_all_between_quotes_to_str(int fd, char *str, int limit, t_asm *a)
 		a->current_line_number++;
 		i = ft_strchr_n(str, '"');
 	}
-	char *sstr1 = str + ft_strchr_n(str, '"') + 1;
-	char *sstr2 = str + ft_strchr_n_2(str, '"') + 1;
 	if ((first_non_space_char(str + ft_strchr_n(str, '"') + 1) != -1 && gnl == 1) || 
 	(first_non_space_char(str + ft_strchr_n_2(str, '"') + 1) != -1 && gnl != 1))
 		return (u_lose((gnl == 2) ? 0 : 1, str, "LEX ERROR AFTER NAME/COMMENT", a));

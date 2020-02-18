@@ -88,6 +88,28 @@ t_type			define_arg_type(t_token *t, int n)
 		return (ERR);
 }
 
+t_type			define_arg_type_std(t_token *t, int n)
+{
+	char	*str;
+
+	if (n < 3)
+		str = t->args[n];
+	else
+		return (0);
+	if (str[0] == '%' && str[1] && str[1] == ':')
+		return (T_DIR);
+	else if (str[0] == '%')
+		return (T_DIR);
+	else if (str[0] == 'r' && str[1] && str[1] >= '0' && str[1] <= '9')
+		return (T_REG);
+	else if ((str[0] >= '0' && str[0] <= '9') || str[0] == '-')
+		return (T_IND);
+	else if (str[0] == ':' && str[1] && ft_strchr(LABEL_CHARS, str[1]))
+		return (T_IND);
+	else
+		return (0);
+}
+
 int			if_its_instr(char *str)
 {
 	int		len;
@@ -179,39 +201,6 @@ char		*make_str_withnocomment(char *str)
 	return (str);
 }
 
-char		*next_arg(char *str)
-{
-	int		c;
-	int		n;
-	char	*s;
-
-	c = ft_strchr_n(str, SEPARATOR_CHAR);
-	if (c < 0)
-	{
-		n = first_space_char(str);
-		str[n] = 0;
-		return (ft_strdup(str));
-	}
-	str[c] = 0;
-	s = ft_strtrim(str);
-	str[c] = SEPARATOR_CHAR;
-	return (s);
-}
-
-void		prep_for_next_arg(t_asm *a, char **str, int f, char **to_free)
-{
-	int		c;
-
-	c = ft_strchr_n(*str, SEPARATOR_CHAR);
-	if ((c < 0 && f != 1) || (c >= 0 && f == 1))
-	{
-		free_parse_exit(a, 1, to_free);
-	}
-	if (c < 0)
-		return ;
-	*str += c + 1;
-	skip_whitespaces(str);
-}
 
 int			size_of_args(t_token *t) // для первого live : instr = 1, arg = %42
 {
@@ -237,6 +226,67 @@ int			size_of_args(t_token *t) // для первого live : instr = 1, arg = 
 	return (size);
 }
 
+// int			if_smth_after_word(char *str)
+// {
+// 	int		i;
+
+// 	i = 0;
+// 	while (str[i] && (str[i] != ' ' && str[i] != '\t'))
+// 		i++;
+// 	if (!str[i])
+// 		return (1);
+// 	while ()
+// }
+
+void		prep_for_next_arg(t_asm *a, char **str, int f, char **to_free)
+{
+	int		c;
+
+	/*
+
+	f == 1 -> значит, что данный аргумент инструкции последний
+	*/
+	c = ft_strchr_n(*str, SEPARATOR_CHAR);
+	if ((c < 0 && f != 1) || (c >= 0 && f == 1))
+	{
+		free_parse_exit(a, 1, to_free);
+	}
+	if (c < 0)
+		return ;
+	*str += c + 1;
+	skip_whitespaces(str);
+}
+
+char		*next_arg(t_asm *a, char *str, int f, char **to_free)
+{
+	int		c;
+	int		n;
+	char	*s;
+	int		arg_len;
+	char	tmp_char;
+
+	if (f == 1)
+	{
+		tmp_char = str[first_space_char(str)];
+		str[first_space_char(str)] = 0;
+		arg_len = (int)ft_strlen(str);
+		str[first_space_char(str)] = tmp_char;
+		if (first_non_space_char((str) + arg_len) != -1)
+			free_parse_exit(a, 1, to_free);
+	}
+	c = ft_strchr_n(str, SEPARATOR_CHAR);
+	if (c < 0)
+	{
+		n = first_space_char(str);
+		str[n] = 0;
+		return (ft_strdup(str));
+	}
+	str[c] = 0;
+	s = ft_strtrim(str);
+	str[c] = SEPARATOR_CHAR;
+	return (s);
+}
+
 void		parse_args_instr(t_asm *a, char *str, char **to_free)
 {
 	char	*s;
@@ -258,10 +308,12 @@ void		parse_args_instr(t_asm *a, char *str, char **to_free)
 	printf("%s\n", s);
 	while (i < op_tab[a->current_instruction - 1].n_args)
 	{
-		last_arg = next_arg(s);
+		last_arg = next_arg(a, s, op_tab[a->current_instruction - 1].n_args - i, to_free);
 		prep_for_next_arg(a, &s, op_tab[a->current_instruction - 1].n_args - i, to_free);
 		printf("ARG = %s|\n", last_arg);
 		curr_instr->args[i] = last_arg;
+		if (!(op_tab[a->current_instruction - 1].args[i] & define_arg_type_std(curr_instr, i)))
+			free_parse_exit(a, 1, to_free);
 		i++;
 	}
 	if (ft_strchr(last_arg, COMMENT_CHAR))
@@ -269,8 +321,13 @@ void		parse_args_instr(t_asm *a, char *str, char **to_free)
 	else if (ft_strchr(last_arg, ALT_COMMENT_CHAR)) //TODO: СДЕЛАТЬ КАК-НИБУДЬ НОРМАЛЬНО
 		curr_instr->args[i - 1][ft_strchr_n(last_arg, ALT_COMMENT_CHAR)] = '\0';
 	a->exec_code_size += size_of_args(curr_instr);
-	if (first_non_space_char(str) != 0)
-		free_parse_exit(a, 1, to_free);
+
+
+
+	// if (first_non_space_char(str) != -1) // TODO: здесь нужна нормальная Проверка на случай, 
+	// если после инструкции
+	// с аргументами что-то есть
+		// free_parse_exit(a, 1, to_free);
 	printf("---------------%s\n", s);
 }
 
@@ -890,7 +947,10 @@ void		write_instr_to_bin(t_asm *a, t_token *t, int o)
 	{
 		if (define_arg_type(t, ia) == REGISTER)
 		{
-			str[i] = ft_atoi(t->args[ia] + 1);
+			if (ft_atoi(t->args[ia] + 1) < 100 && ft_atoi(t->args[ia] + 1) > 0)
+				str[i] = ft_atoi(t->args[ia] + 1);
+			else
+				str = NULL;
 			i++;
 		}
 		else if (define_arg_type(t, ia) == DIRECT)

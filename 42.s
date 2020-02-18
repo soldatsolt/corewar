@@ -1,6 +1,8 @@
 .name "zork"
-.comment "I'M ALIIIIVE"
+.comment "just a basic living prog"
 
-live	%1 live %1
-#r_asm return Syntax error at token [TOKEN][004:009] INSTRUCTION "live"
-#Our_asm compile it by ignoring the second operation
+l2:
+		sti r90,%:live,%-1
+		and r1,%0,r1
+live:   live %1
+		zjmp %:live

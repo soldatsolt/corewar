@@ -77,28 +77,28 @@ typedef struct          s_asm
 	t_token				*tokens;
 }						t_asm;
 
-t_token		*init_instruction(t_asm *a, t_token *t, char *str);
-t_token		*init_label(t_asm *a, t_token *t, char *str);
-t_asm		init_asm(void);
-int			if_its_instr(char *str);
-void		u_lose(int need_free, char *to_free, char *note, t_asm *a);
-void		free_token_content(t_token *t);
-void		free_all_tokens(t_token *t);
-void		free_parse_exit(t_asm *a, int er_flag, char **to_free);
-void		parse_args_instr(t_asm *a, char *str, char **to_free);
-void		skip_label_if_instr_ferther(t_asm *a, char *str);
-void		skip_whitespaces(char	**str);
-void		instr_to_tokens(t_asm *a, char *str);
-void		insert_all_between_quotes_to_str(int fd, char *str, int limit, t_asm *a);
-void		insert_comment_to_asm(int fd, char *str, t_asm *a);
-void		insert_name_to_asm(int fd, char *str, t_asm *a);
-void		instr_to_tokens(t_asm *a, char *str);
-void		label_to_tokens(t_asm *a, char *str);
-int			first_non_space_char(char *str);
-char		*last_instr_name(t_asm *a);
-t_token		*last_instr(t_asm *a);
-int			first_space_char(char *str);
-char		*make_str_withnocomment(char *str);
+t_token					*init_instruction(t_asm *a, t_token *t, char *str);
+t_token					*init_label(t_asm *a, t_token *t, char *str);
+t_asm					init_asm(void);
+int						if_its_instr(char *str);
+void					u_lose(int need_free, char *to_free, char *note, t_asm *a);
+void					free_token_content(t_token *t);
+void					free_all_tokens(t_token *t);
+void					free_parse_exit(t_asm *a, int er_flag, char **to_free);
+void					parse_args_instr(t_asm *a, char *str, char **to_free);
+void					skip_label_if_instr_ferther(t_asm *a, char *str);
+void					skip_whitespaces(char	**str);
+void					instr_to_tokens(t_asm *a, char *str);
+void					insert_all_between_quotes_to_str(int fd, char *str, int limit, t_asm *a);
+void					insert_comment_to_asm(int fd, char *str, t_asm *a);
+void					insert_name_to_asm(int fd, char *str, t_asm *a);
+void					instr_to_tokens(t_asm *a, char *str);
+void					label_to_tokens(t_asm *a, char *str);
+int						first_non_space_char(char *str);
+char					*last_instr_name(t_asm *a);
+t_token					*last_instr(t_asm *a);
+int						first_space_char(char *str);
+char					*make_str_withnocomment(char *str);
 
 
 #endif
