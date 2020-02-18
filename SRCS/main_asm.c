@@ -372,10 +372,12 @@ int			read_from_file(int fd, t_asm *a)
 	a->current_line_number = 1;
 	while (get_next_line(fd, &str))
 	{
+		a->str = str;
 		parse_this_line(fd, str, a);
 		// if (str[ft_strlen(str) - 1] != '\n')
 		// 	free_parse_exit(a, 1, &str);
 		free(str);
+		a->str = NULL;
 		str = NULL;
 		a->current_line_number++;
 	}
@@ -950,7 +952,10 @@ void		write_instr_to_bin(t_asm *a, t_token *t, int o)
 			if (ft_atoi(t->args[ia] + 1) < 100 && ft_atoi(t->args[ia] + 1) > 0)
 				str[i] = ft_atoi(t->args[ia] + 1);
 			else
+			{
+				free(str);
 				str = NULL;
+			}
 			i++;
 		}
 		else if (define_arg_type(t, ia) == DIRECT)

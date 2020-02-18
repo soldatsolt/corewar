@@ -74,6 +74,7 @@ typedef struct          s_asm
 	char				*current_label;
 	int					current_instruction;
 	int					exec_code_size;
+	char				*str;
 	t_token				*tokens;
 }						t_asm;
 
@@ -99,6 +100,5 @@ char					*last_instr_name(t_asm *a);
 t_token					*last_instr(t_asm *a);
 int						first_space_char(char *str);
 char					*make_str_withnocomment(char *str);
-
 
 #endif

@@ -61,5 +61,7 @@ void		free_parse_exit(t_asm *a, int er_flag, char **to_free)
 		ft_printf("NO CODE IN FILE\n", a->current_line_number);
 	if (to_free)
 		free(*to_free);
+	if (a->str)
+		free(a->str);
 	exit(1);
 }
