@@ -1,6 +1,6 @@
 #include "corewar.h"
 
-t_token		*init_instruction(t_token *t, char *str)
+t_token		*init_instruction(t_asm *a, t_token *t, char *str)
 {
 	t = (t_token *)malloc(sizeof(t_token));
 	t->type = INSTRUCTION;
@@ -10,6 +10,7 @@ t_token		*init_instruction(t_token *t, char *str)
 	t->args[1] = NULL;
 	t->args[2] = NULL;
 	t->label = NULL;
+	t->current_line = a->current_line_number;
 	return (t);
 }
 
@@ -20,9 +21,11 @@ t_token		*init_label(t_asm *a, t_token *t, char *str)
 	t->instr = if_its_instr(str);
 	t->next = NULL;
 	t->label = a->current_label;
+	printf("LABEL IS %s\n", a->current_label);
 	t->args[0] = NULL;
 	t->args[1] = NULL;
 	t->args[2] = NULL;
+	t->current_line = a->current_line_number;
 	return (t);
 }
 

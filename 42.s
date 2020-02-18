@@ -1,7 +1,6 @@
 .name "zork"
-.comment "[zork]"
+.comment "I'M ALIIIIVE"
 
-liv::::::::::::::::::::a-sti r1,%1,%1 #
-#liv: =dadfadfjadfjha! sti r1,%1,%1
-#liv::::::::::::::::::::sti r1,%1,%1 #
-liv:::::::::::::::::a-sti r1,%1,%1
+live	%1 live %1
+#r_asm return Syntax error at token [TOKEN][004:009] INSTRUCTION "live"
+#Our_asm compile it by ignoring the second operation

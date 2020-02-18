@@ -3,7 +3,7 @@
 /*
 ** Начинаю делать проект корвар с асм
 ** Этот коммент больше для себя
-** Проверка на \n в самом конце
+** TODO:Проверка на \n в самом конце
 FIXME: НЕ ОБРАБОТАЛ КОММЕНТАРИИ!!!! 
 ld	%0,r11#sdasdas
 ПИШЕТ
@@ -133,12 +133,14 @@ int			if_l_chars(char *str, t_asm *a)
 	int		l;
 	int		c;
 
+	if (!strcmp(str, "bite:	sti     r1,%:copie,%2"))
+		i = 0;
 	i = 0;
 	c = ft_strchr_n(str, LABEL_CHAR);
 	if (c < 0)
 		return (0);
-	if (ft_strchr(str + c, LABEL_CHAR))
-		return (0);
+	// if (ft_strchr(str + c + 1, LABEL_CHAR)) // FIXME: HERE IS MISTAKE
+	// 	return (0);
 	str[c] = 0;
 	l = (int)ft_strlen(str);
 	while (i < l)
@@ -191,7 +193,7 @@ char		*next_arg(char *str)
 		return (ft_strdup(str));
 	}
 	str[c] = 0;
-	s = ft_strdup(str);
+	s = ft_strtrim(str);
 	str[c] = SEPARATOR_CHAR;
 	return (s);
 }
@@ -267,13 +269,14 @@ void		parse_args_instr(t_asm *a, char *str, char **to_free)
 	else if (ft_strchr(last_arg, ALT_COMMENT_CHAR)) //TODO: СДЕЛАТЬ КАК-НИБУДЬ НОРМАЛЬНО
 		curr_instr->args[i - 1][ft_strchr_n(last_arg, ALT_COMMENT_CHAR)] = '\0';
 	a->exec_code_size += size_of_args(curr_instr);
-	if (first_non_space_char(str) != 1)
+	if (first_non_space_char(str) != 0)
 		free_parse_exit(a, 1, to_free);
 	printf("---------------%s\n", s);
 }
 
 void		parse_this_line(int fd, char *str, t_asm *a)
 {
+	a->f = a->f & F_SMTH_CHNGD ? a->f - F_SMTH_CHNGD : a->f;
 	str = ft_strtrim(str);
 	if (!str[0])
 	{
@@ -285,6 +288,11 @@ void		parse_this_line(int fd, char *str, t_asm *a)
 	else if (!ft_strncmp(str, COMMENT_CMD_STRING, 8))
 		insert_comment_to_asm(fd, str, a);
 	str = make_str_withnocomment(str);
+	if (!str[0])
+	{
+		free(str);
+		return ;
+	}
 	if (str[0] && !if_its_instr(str) && if_l_chars(str, a))
 	{
 		label_to_tokens(a, str);
@@ -295,6 +303,8 @@ void		parse_this_line(int fd, char *str, t_asm *a)
 		instr_to_tokens(a, str);
 		parse_args_instr(a, str, &str);
 	}
+	if (!(a->f & F_SMTH_CHNGD))
+		free_parse_exit(a, 1, &str);
 	free(str);
 }
 
@@ -373,12 +383,41 @@ char		put_args_type_to_str(t_token *t)
 	return (c);
 }
 
+int			if_all_is_nums(char *str)
+{
+	int		i;
+	int		z;
+
+	i = 0;
+	z = 0;
+	if (str[i] == '-')
+	{
+		i++;
+		z = 1;
+	}
+	while (str[i])
+	{
+		if (str[i] >= '0' && str[i] <= '9')
+			i++;
+		else
+			return (0);
+	}
+	if (i == 0 || (i == 1 && z == 1))
+		return (0);
+	return (1);
+}
+
 char		*put_dir_arg(int ia, t_token *t, char *str, int *i)
 {		
 	int		diff;
 	int		ii;
 
 	ii = 0;
+	if (!if_all_is_nums(t->args[ia] + 1))
+	{
+		free(str);
+		return (NULL);
+	}
 	diff = ft_atoi(t->args[ia] + 1);
 	printf("DIR = %d\n", diff);
 	if (diff > 0)
@@ -454,6 +493,11 @@ char		*put_ind_arg(int ia, t_token *t, char *str, int *i)
 	int		ii;
 
 	ii = 0;
+	if (!if_all_is_nums(t->args[ia]))
+	{
+		free(str);
+		return (NULL);
+	}
 	diff = ft_atoi(t->args[ia]);
 	printf("IND = %d\n", diff);
 	if (diff > 0)
@@ -864,6 +908,11 @@ void		write_instr_to_bin(t_asm *a, t_token *t, int o)
 			a->current_label = ft_strtrim((t->args[ia]) + 1);
 			str = put_ind_label_arg(a, t, str, &i);
 			free(a->current_label);
+		}
+		if (!str)
+		{
+			a->current_line_number = t->current_line;
+			free_parse_exit(a, 1, NULL);
 		}
 		// FIXME: НА САМОМ ДЕЛЕ ЗДЕСЬ НЕ НУЖНО I++, ЭТО ЧТОБЫ НЕ ВХОДИЛ В ИНФ ЦИКЛ
 		ia++;

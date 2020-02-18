@@ -25,6 +25,7 @@
 # include <uuid/uuid.h>
 # define F_NAME 0x1
 # define F_COMMENT 0x2
+# define F_SMTH_CHNGD 0x4
 # define CNTL "Champion name too long (Max length 2048)"
 # define CCTL "Champion comment too long (Max length 2048)"
 
@@ -76,7 +77,7 @@ typedef struct          s_asm
 	t_token				*tokens;
 }						t_asm;
 
-t_token		*init_instruction(t_token *t, char *str);
+t_token		*init_instruction(t_asm *a, t_token *t, char *str);
 t_token		*init_label(t_asm *a, t_token *t, char *str);
 t_asm		init_asm(void);
 int			if_its_instr(char *str);
