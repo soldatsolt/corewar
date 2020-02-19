@@ -73,7 +73,7 @@ void		insert_comment_to_asm(int fd, char *str, t_asm *a)
 	if (a->f & F_COMMENT)
 	{
 		ft_printf("SYNTAX ERROR ON LINE [%d]\n", a->current_line_number);
-		ft_putendl_fd("Comment was declared before", 2);
+		ft_putendl_fd("Comment was declared before", 2); // FIXME: NO FREES??????
 		exit(1);
 	}
 	a->f |= F_COMMENT;

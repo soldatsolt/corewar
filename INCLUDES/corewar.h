@@ -26,6 +26,7 @@
 # define F_NAME 0x1
 # define F_COMMENT 0x2
 # define F_SMTH_CHNGD 0x4
+# define F_LAST_STR_COMMENT 0x8
 # define CNTL "Champion name too long (Max length 2048)"
 # define CCTL "Champion comment too long (Max length 2048)"
 

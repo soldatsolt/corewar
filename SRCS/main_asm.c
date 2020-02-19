@@ -334,9 +334,11 @@ void		parse_args_instr(t_asm *a, char *str, char **to_free)
 void		parse_this_line(int fd, char *str, t_asm *a)
 {
 	a->f = a->f & F_SMTH_CHNGD ? a->f - F_SMTH_CHNGD : a->f;
+	a->f = a->f & F_LAST_STR_COMMENT ? a->f - F_LAST_STR_COMMENT : a->f;
 	str = ft_strtrim(str);
 	if (!str[0])
 	{
+		a->f |= F_LAST_STR_COMMENT;
 		free(str);
 		return ;
 	}
@@ -347,6 +349,7 @@ void		parse_this_line(int fd, char *str, t_asm *a)
 	str = make_str_withnocomment(str);
 	if (!str[0])
 	{
+		a->f |= F_LAST_STR_COMMENT;
 		free(str);
 		return ;
 	}
@@ -368,6 +371,7 @@ void		parse_this_line(int fd, char *str, t_asm *a)
 int			read_from_file(int fd, t_asm *a)
 {
 	char	*str;
+	char	endfile[2];
 
 	a->current_line_number = 1;
 	while (get_next_line(fd, &str))
@@ -383,6 +387,17 @@ int			read_from_file(int fd, t_asm *a)
 	}
 	if (str)
 		free(str);
+	if (!(a->f & F_LAST_STR_COMMENT))
+	{
+		lseek(fd, -1, SEEK_END);
+		read(fd, endfile, 1);
+		endfile[1] = 0;
+		if (endfile[0] != '\n')
+		{
+			printf("ERROR NO LAST NEWLINE\n");
+			exit(1);
+		}
+	}
 	return (1);
 }
 
@@ -711,6 +726,7 @@ char		*put_dir_label_arg(t_asm *a, t_token *t, char *str, int *i)
 	if (!tmp_label)
 	{
 		printf("NO SUCH LABEL LABEL!!!! [%s]\n", a->current_label); //TODO: FIXME: СДЕЛАТЬ ЗДЕСЬ АДЕКВАТНЫЙ ВЫХОД!!!!
+		free_parse_exit(a, 3, &str);
 		exit(0);
 	}
 	// printf("FINAL DIFF IS [%d]\n", diff);
@@ -859,6 +875,7 @@ char		*put_ind_label_arg(t_asm *a, t_token *t, char *str, int *i)
 	if (!tmp_label)
 	{
 		printf("NO SUCH LABEL LABEL!!!! [%s]\n", a->current_label); //TODO: FIXME: СДЕЛАТЬ ЗДЕСЬ АДЕКВАТНЫЙ ВЫХОД!!!!
+		free_parse_exit(a, 3, &str);
 		exit(0);
 	}
 	// printf("FINAL DIFF IS [%d]\n", diff);
@@ -949,7 +966,7 @@ void		write_instr_to_bin(t_asm *a, t_token *t, int o)
 	{
 		if (define_arg_type(t, ia) == REGISTER)
 		{
-			if (ft_atoi(t->args[ia] + 1) < 100 && ft_atoi(t->args[ia] + 1) > 0)
+			if (ft_atoi(t->args[ia] + 1) < 100 && ft_atoi(t->args[ia] + 1) >= 0)
 				str[i] = ft_atoi(t->args[ia] + 1);
 			else
 			{
