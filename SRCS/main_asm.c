@@ -946,7 +946,7 @@ char		*put_ind_label_arg(t_asm *a, t_token *t, char *str, int *i)
 	return (str);
 }
 
-void		write_instr_to_bin(t_asm *a, t_token *t, int o)
+char		*write_instr_to_bin(t_asm *a, t_token *t)
 {
 	char	*str;
 	int		i;
@@ -999,18 +999,54 @@ void		write_instr_to_bin(t_asm *a, t_token *t, int o)
 		// FIXME: НА САМОМ ДЕЛЕ ЗДЕСЬ НЕ НУЖНО I++, ЭТО ЧТОБЫ НЕ ВХОДИЛ В ИНФ ЦИКЛ
 		ia++;
 	}
-	write(o, str, size_of_args(t) + 1);
-	free(str);
+	// write(o, str, size_of_args(t) + 1);
+	return (str);
+	// free(str);
+}
+
+char		*join_strs(char *s1, char *s2, int sum_len, t_token *t)
+{
+	char	*str;
+	int		i;
+
+	i = 0;
+	str = ft_strnew((size_t)sum_len);
+	if (s1)
+	{
+		str = (char *)memcpy(str, s1, (sum_len - size_of_args(t) - 1));
+		free(s1);
+	}
+	if (s2)
+	{
+		str += (sum_len - size_of_args(t) - 1);
+		str = (char *)memcpy(str, s2, size_of_args(t) + 1); // TODO: FT_MEMCPY
+		str -= (sum_len - size_of_args(t) - 1);
+		free(s2);
+	}
+	return (str);
 }
 
 void		write_to_exec(t_asm *a)
 {
 	int		o;
 	t_token	*tmp;
+	int		sum_len;
+	char	*str;
 
+	str = NULL;
+	sum_len = 0;
 	if (a->exec_code_size <= 0)
 		free_parse_exit(a, 2, 0);
 	tmp = a->tokens;
+	while (tmp)
+	{
+		if (tmp->type == INSTRUCTION)
+		{
+			sum_len += size_of_args(tmp) + 1;
+			str = join_strs(str, write_instr_to_bin(a, tmp), sum_len, tmp);
+		}
+		tmp = tmp->next;
+	}
 	o = open("MYFILE", O_WRONLY | O_CREAT | O_TRUNC, 0777);
 	write(o, g_magic_header, 4);
 	write(o, a->name, PROG_NAME_LENGTH);
@@ -1019,14 +1055,9 @@ void		write_to_exec(t_asm *a)
 	write_exec_code_size_to_bin(a, o);
 	write(o, a->comment, COMMENT_LENGTH);
 	write(o, g_null, 4);
-	while (tmp)
-	{
-		if (tmp->type == INSTRUCTION)
-			write_instr_to_bin(a, tmp, o);
-		tmp = tmp->next;
-	}
-
-	close(0);
+	write(o, str, sum_len);
+	free(str);
+	close(o);
 }
 
 int			main(int argc, char **argv)
