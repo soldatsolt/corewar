@@ -57,8 +57,10 @@ void		free_parse_exit(t_asm *a, int er_flag, char **to_free)
 	free_all_tokens(a->tokens);
 	if (er_flag == 1) // er_flag = 1 если ошибка и он выходит
 		ft_printf("LEX ERROR ON LINE [%d]\n", a->current_line_number);
-	else if (er_flag == 2) // er_flag = 1 если ошибка и он выходит
+	else if (er_flag == 2) // er_flag = 2 если ошибка и он выходит
 		ft_printf("NO CODE IN FILE\n", a->current_line_number);
+	else if (er_flag == 4) // er_flag = 4 если ошибка и он выходит
+		ft_printf("NO NEWLINE IN THE END\n", a->current_line_number);
 	if (to_free)
 		free(*to_free);
 	if (a->str)

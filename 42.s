@@ -1,12 +1,5 @@
-.name "zork"
-.comment "I'M ]ALIIIIVE"
-
-
-#aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-
-le_12:
-
-live %1
-
-liv:or	r1, 1, r1	#
 	
+.name "Jumper !"   
+.comment "en fait C forker !"
+
+suite:	sti r1,%1,%1

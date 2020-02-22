@@ -394,7 +394,7 @@ int			read_from_file(int fd, t_asm *a)
 		endfile[1] = 0;
 		if (endfile[0] != '\n')
 		{
-			printf("ERROR NO LAST NEWLINE\n");
+			free_parse_exit(a, 4, NULL);
 			exit(1);
 		}
 	}
@@ -1013,13 +1013,13 @@ char		*join_strs(char *s1, char *s2, int sum_len, t_token *t)
 	str = ft_strnew((size_t)sum_len);
 	if (s1)
 	{
-		str = (char *)memcpy(str, s1, (sum_len - size_of_args(t) - 1));
+		str = (char *)ft_memcpy(str, s1, (sum_len - size_of_args(t) - 1));
 		free(s1);
 	}
 	if (s2)
 	{
 		str += (sum_len - size_of_args(t) - 1);
-		str = (char *)memcpy(str, s2, size_of_args(t) + 1); // TODO: FT_MEMCPY
+		str = (char *)ft_memcpy(str, s2, size_of_args(t) + 1); // TODO: FT_MEMCPY
 		str -= (sum_len - size_of_args(t) - 1);
 		free(s2);
 	}
@@ -1069,7 +1069,7 @@ int			main(int argc, char **argv)
 
 	a = init_asm();
 	if (argc < 2)
-		ft_putendl("Usage: ./vm_champs/asm <sourcefile.s>");
+		ft_putendl("Usage: ./asm <sourcefile.s>");
 	else
 	{
 		fd = open(argv[argc - 1], O_RDONLY);
